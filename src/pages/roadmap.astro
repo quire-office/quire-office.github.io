@@ -1,0 +1,71 @@
+---
+import Base from '../layouts/Base.astro';
+---
+<Base
+  title="Roadmap — Quire"
+  description="Quire is an Office-format engine family, not a single-format project. Where DOCX is today, and how XLSX and PPTX join as sibling crates on the same lossless core."
+  path="/roadmap"
+>
+  <section class="hero">
+    <div class="wrap">
+      <p class="eyebrow"><span class="tick">●</span> Roadmap</p>
+      <h1>An engine family, not a single-format project.</h1>
+      <p class="sub">
+        Each new format is a sibling crate on the same core rather than a fork, and the
+        layering gate is what keeps that promise cheap.
+      </p>
+    </div>
+  </section>
+
+  <section class="wrap">
+    <article class="phase">
+      <span class="tag now">Now</span>
+      <h2>DOCX</h2>
+      <ul>
+        <li>Lossless round-trip: hand-rolled ZIP writer copies untouched entries byte-for-byte, ZIP64 and unknown extensions included — 130/130 corpus files in CI.</li>
+        <li>Line breaking and pagination: Knuth-Plass optimal breaks, UAX#14 rules, CJK anywhere / Latin at whitespace.</li>
+        <li>Page geometry from <code>sectPr</code>, real font-metric shaping, golden break-point snapshots.</li>
+        <li>Incremental pagination with budgeted background reflow; incremental rebuilds are provably identical to full rebuilds.</li>
+      </ul>
+    </article>
+
+    <article class="phase">
+      <span class="tag">Next · Phase 3–4</span>
+      <h2>DOCX depth, then collaboration</h2>
+      <ul>
+        <li>Tables, headers/footers, columns and tracked changes — sequenced by the corpus green-light rate, not by a feature calendar.</li>
+        <li>CRDT collaborative layer behind an adapter slot, so the collaboration dependency loads only when a document is actually shared.</li>
+      </ul>
+    </article>
+
+    <article class="phase">
+      <span class="tag">Then</span>
+      <h2>XLSX</h2>
+      <ul>
+        <li>A sibling format crate on the same OPC container and lossless discipline.</li>
+        <li>Workbook model, formula engine, and a sheet render list — a grid layout model, deliberately its own rather than a reuse of DOCX flow.</li>
+        <li>Charts follow the grid, not the other way around.</li>
+      </ul>
+    </article>
+
+    <article class="phase">
+      <span class="tag">Then</span>
+      <h2>PPTX</h2>
+      <ul>
+        <li>Slide and shape model reusing the layout and shaping crates, with a canvas layout model of its own.</li>
+        <li>A presentation render list on the same display-list contract the native and browser shells already consume.</li>
+      </ul>
+    </article>
+
+    <article class="phase">
+      <span class="tag">Structure</span>
+      <h2>Shell split, when it earns its keep</h2>
+      <p>
+        Shells stay in-tree until one ships releases of its own, its licence diverges, or
+        its contributor community diverges. Until then the layering gate keeps the
+        separation clean, so splitting later is a move of directories rather than a
+        rewrite.
+      </p>
+    </article>
+  </section>
+</Base>
