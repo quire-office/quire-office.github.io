@@ -30,12 +30,12 @@ import Base from '../layouts/Base.astro';
     <h2 id="evidence-h" style="margin-top:0;">Evidence, not promises</h2>
     <div class="stats">
       <div>
-        <span class="num">130/130</span>
+        <span class="num">399/399</span>
         <span class="lbl">real-world corpus files round-trip byte-identical in CI — ZIP64 and unknown extensions included</span>
       </div>
       <div>
-        <span class="num">3 × 2</span>
-        <span class="lbl">CI matrix: ubuntu / macOS / Windows × native + wasm32-unknown-unknown</span>
+        <span class="num">2 × 2</span>
+        <span class="lbl">CI matrix: ubuntu / Windows × native + wasm32-unknown-unknown</span>
       </div>
       <div>
         <span class="num">&lt; 54 KB</span>
@@ -80,7 +80,7 @@ import Base from '../layouts/Base.astro';
     <div class="rows">
       <div class="row">
         <div class="k">Lossless by construction</div>
-        <p>Untouched ZIP entries are copied byte-for-byte on write-back; <code>roundtrip --check</code> plus a 130-file corpus gate it on every commit across three OSes.</p>
+        <p>Untouched ZIP entries are copied byte-for-byte on write-back; <code>roundtrip --check</code> plus a 400-file corpus gate it on every commit across two OSes.</p>
       </div>
       <div class="row">
         <div class="k">One core, two targets</div>
