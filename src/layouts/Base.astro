@@ -1,0 +1,91 @@
+---
+import '../styles/fonts.css';
+import '../styles/global.css';
+
+interface Props {
+  title: string;
+  description: string;
+  /** path relative to site root, e.g. "/roadmap" */
+  path: string;
+  /** absolute-ish asset paths (public/) for OG image etc. */
+  ogImage?: string;
+}
+
+const { title, description, path, ogImage = '/brand/social-preview.png' } = Astro.props;
+const canonical = new URL(path, Astro.site);
+const ogUrl = new URL(ogImage, Astro.site);
+const year = 2026;
+
+const nav = [
+  { href: '/', label: 'Home' },
+  { href: '/roadmap', label: 'Roadmap' },
+  { href: '/playground', label: 'Playground' },
+];
+---
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{title}</title>
+    <meta name="description" content={description} />
+    <link rel="canonical" href={canonical.href} />
+    <meta name="theme-color" content="#FAF8F4" media="(prefers-color-scheme: light)" />
+    <meta name="theme-color" content="#181A1E" media="(prefers-color-scheme: dark)" />
+
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="Quire" />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:url" content={canonical.href} />
+    <meta property="og:image" content={ogUrl.href} />
+    <meta property="og:image:width" content="1280" />
+    <meta property="og:image:height" content="640" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:image" content={ogUrl.href} />
+
+    <link rel="icon" href="/favicon.ico" sizes="any" />
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png" />
+    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16.png" />
+    <link rel="apple-touch-icon" href="/favicon-180.png" />
+    <link rel="sitemap" href="/sitemap-index.xml" />
+    <link
+      rel="preload"
+      href="/fonts/SourceSerif4-var-latin.woff2"
+      as="font"
+      type="font/woff2"
+      crossorigin
+    />
+  </head>
+  <body>
+    <a class="skip-link" href="#main">Skip to content</a>
+    <header class="site-header">
+      <div class="wrap">
+        <a class="brandlink" href="/" aria-label="Quire home">
+          <svg viewBox="0 0 256 256" aria-hidden="true" focusable="false">
+            <path class="mark-body" d="M 56.91 55.77 L 56.91 196.57 L 176.0 196.8 L 194.97 214.17 L 200.69 208.0 L 145.14 151.09 L 144.69 167.31 L 84.8 166.86 L 84.8 85.03 L 155.89 84.57 L 156.57 56.0 Z" />
+            <path class="mark-fold" d="M 157.26 55.77 L 156.8 95.54 L 167.54 96.46 L 167.54 157.71 L 204.34 195.89 L 220.11 195.89 L 197.49 171.43 L 197.49 96.46 Z" />
+          </svg>
+          <span class="wordmark">Quire</span>
+        </a>
+        <nav class="site-nav" aria-label="Main">
+          {nav.map((item) => (
+            <a href={item.href} aria-current={path === item.href ? 'page' : undefined}>
+              {item.label}
+            </a>
+          ))}
+        </nav>
+      </div>
+    </header>
+    <main id="main">
+      <slot />
+    </main>
+    <footer class="site-footer">
+      <div class="wrap">
+        <span>Quire — lossless Office document engines in Rust</span>
+        <span>Apache-2.0 · typefaces SIL OFL 1.1</span>
+        <span>© {year} Quire</span>
+      </div>
+    </footer>
+  </body>
+</html>

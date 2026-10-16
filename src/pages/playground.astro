@@ -1,0 +1,73 @@
+---
+import Base from '../layouts/Base.astro';
+---
+<Base
+  title="Playground — Quire"
+  description="Drop a .docx and the browser renders it with the same Rust engine, compiled to WebAssembly. Skeleton page: the interactive build is in progress."
+  path="/playground"
+>
+  <section class="hero">
+    <div class="wrap">
+      <p class="eyebrow"><span class="tick">●</span> WASM Playground — skeleton</p>
+      <h1>Drop a <code>.docx</code>. The engine runs here.</h1>
+      <p class="sub">
+        Same Rust core, compiled to <code>wasm32-unknown-unknown</code>, running in your
+        browser. No upload, no server: the bytes never leave the tab.
+      </p>
+    </div>
+  </section>
+
+  <section class="wrap">
+    <div class="dropzone">
+      <span class="chip">Engine loading</span>
+      <p class="dz-title">Drop your file here</p>
+      <p class="dz-sub">
+        The interactive shell is being wired to the engine build. This page is the
+        skeleton: the drop zone and its contract are real, the render is not yet.
+      </p>
+    </div>
+    <p class="muted" style="font-size:0.95rem;">
+      The zone above is a placeholder, not a broken control: it accepts no files yet and
+      never claims to have rendered one.
+    </p>
+  </section>
+
+  <section class="wrap" aria-labelledby="spec-h">
+    <h2 id="spec-h">What the playground will do</h2>
+    <table class="spec">
+      <tbody>
+        <tr>
+          <th scope="row">Input</th>
+          <td>A local <code>.docx</code>, read in-tab with the File API. Nothing is uploaded.</td>
+        </tr>
+        <tr>
+          <th scope="row">Engine</th>
+          <td>The <code>shells/web</code> wasm build — a thin adapter over the same core the CLI uses, streamed on first load with progress reported.</td>
+        </tr>
+        <tr>
+          <th scope="row">Output</th>
+          <td>Line-break points and page splits from the real layout pass: shaped advances against real font metrics, Knuth-Plass breaks, pagination per <code>sectPr</code> geometry.</td>
+        </tr>
+        <tr>
+          <th scope="row">Editing</th>
+          <td>An invisible caret at the engine's caret rectangle, so text entered through an IME lands where the engine thinks the cursor is and reflows incrementally.</td>
+        </tr>
+        <tr>
+          <th scope="row">Budget</th>
+          <td>First wasm payload stays under its gzip budget in CI; the collaboration layer is a separate deferred chunk.</td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section class="wrap" aria-labelledby="status-h">
+    <h2 id="status-h">Status</h2>
+    <p>
+      Not interactive yet. The engine work behind it — dual-target build, bundle split,
+      size gate, caret contract — has landed; wiring the drop zone to a live render is a
+      separate task. Until then, mail
+      <a href="mailto:preview@quireoffice.dev">preview@quireoffice.dev</a> for a build to
+      try.
+    </p>
+  </section>
+</Base>
