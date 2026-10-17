@@ -14,7 +14,7 @@ const ALLOW = [
   { what: 'OFL license text', re: /https?:\/\/openfontlicense\.org/g },
   { what: 'OFL upstream attribution (font license files)', re: /https?:\/\/(fonts\.google\.com\/[a-z/]*|github\.com\/(adobe-fonts|IBM)\/[A-Za-z0-9._-]+|scripts\.sil\.org)\/?/g },
   // XML namespaces are identifiers, never fetched
-  { what: 'sitemap schema namespaces', re: /https?:\/\/(www\.)?sitemaps\.org|https:\/\/www\.google\.com\/schemas\//g },
+  { what: 'sitemap schema namespaces', re: /https?:\/\/(www\.)?sitemaps\.org|https?:\/\/www\.google\.com\/schemas\//g },
   // GSAP banner-comment license URLs: self-hosted npm bundle, comment metadata only (no fetch)
   { what: 'GSAP license text', re: /https?:\/\/gsap\.com(\/standard-license)?/g },
 ];
