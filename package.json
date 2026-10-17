@@ -13,7 +13,8 @@
   "license": "Apache-2.0",
   "dependencies": {
     "@astrojs/sitemap": "3.7.4",
-    "astro": "5.18.2"
+    "astro": "5.18.2",
+    "gsap": "^3.15.0"
   },
   "allowScripts": {
     "esbuild@0.27.7": true,
