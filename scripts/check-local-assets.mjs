@@ -17,6 +17,8 @@ const ALLOW = [
   { what: 'sitemap schema namespaces', re: /https?:\/\/(www\.)?sitemaps\.org|https?:\/\/www\.google\.com\/schemas\//g },
   // GSAP banner-comment license URLs: self-hosted npm bundle, comment metadata only (no fetch)
   { what: 'GSAP license text', re: /https?:\/\/gsap\.com(\/standard-license)?/g },
+  // public GitHub org root + public site repos (engine repo stays FORBIDDEN below)
+  { what: 'GitHub org page (public)', re: /https:\/\/github\.com\/quire-office(\/(www|docs|\.github))?\/?(?=["')\s<]|$)/g },
 ];
 
 const FORBIDDEN = [

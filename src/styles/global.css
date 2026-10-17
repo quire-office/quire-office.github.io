@@ -229,6 +229,9 @@ code {
   color: var(--muted);
   padding-block: 0.4rem;
   border-bottom: 2px solid transparent;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
 }
 
 .site-nav a:hover {
