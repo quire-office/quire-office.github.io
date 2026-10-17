@@ -3,3 +3,4 @@ dist/
 .astro/
 _fontwork/dl/
 *.log
+.worktrees/
