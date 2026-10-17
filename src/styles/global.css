@@ -243,7 +243,20 @@ code {
 /* --- hero ----------------------------------------------------------------- */
 
 .hero {
-  padding-block: clamp(3rem, 6vw, 5.5rem) clamp(2.4rem, 5vw, 4rem);
+  padding-block: clamp(2.6rem, 5vw, 4.6rem) clamp(2.2rem, 4vw, 3.6rem);
+}
+
+.hero-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.08fr) minmax(0, 0.92fr);
+  gap: clamp(2rem, 5vw, 4.5rem);
+  align-items: center;
+}
+
+@media (max-width: 900px) {
+  .hero-grid {
+    grid-template-columns: 1fr;
+  }
 }
 
 .hero h1 {
@@ -290,6 +303,124 @@ code {
   border-color: var(--fg);
   background: transparent;
   color: var(--fg);
+}
+
+/* --- hero specimen (the page renders itself: our core is the demo) -------- */
+
+.specimen {
+  position: relative;
+  margin: 0;
+  padding-block: 1.4rem;
+  transform: rotate(-0.6deg);
+}
+
+.specimen-sheet {
+  position: relative;
+  background: var(--bg);
+  border: 1px solid var(--rule);
+  padding: clamp(1.4rem, 3vw, 2.2rem) clamp(1.3rem, 3vw, 2.1rem) 0.9rem;
+  /* dog-ear notch: the corner is physically folded away (45°, same as the mark) */
+  clip-path: polygon(0 0, calc(100% - 3.4rem) 0, 100% 3.4rem, 100% 100%, 0 100%);
+}
+
+/* thin column rule down the sheet margin, like a print proof */
+.specimen-sheet::before {
+  content: "";
+  position: absolute;
+  inset: 0.55rem auto 0.55rem 0.55rem;
+  width: 1px;
+  background: var(--rule);
+}
+
+.specimen-lines {
+  padding-left: clamp(0.7rem, 2vw, 1.2rem);
+}
+
+.specimen-lines .set-line {
+  font-size: clamp(0.98rem, 0.9rem + 0.35vw, 1.12rem);
+  line-height: 1.75;
+  margin: 0 0 0.85em;
+  max-width: none;
+  text-align: justify;
+  hyphens: auto;
+}
+
+.specimen-lines .set-line:nth-child(2) {
+  font-family: var(--font-serif);
+}
+
+.specimen-lines em {
+  font-style: italic;
+}
+
+/* one line carries the letterpress red — the fold-face language, kept to one stroke
+   (explicit span: ::first-letter picked a fallback face and rendered tofu for 斷) */
+.specimen-lines .fold-red {
+  color: var(--accent-text);
+}
+
+.specimen-sheet figcaption {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  border-top: 1px solid var(--rule);
+  margin-top: 0.4rem;
+  padding-block: 0.55rem 0.2rem;
+  font-family: var(--font-mono);
+  font-size: 0.66rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.specimen-sheet figcaption span {
+  white-space: nowrap;
+}
+
+/* the dog-eared corner: same 45° language as the mark's fold face */
+.specimen-fold {
+  position: absolute;
+  top: 1.4rem;
+  right: 0;
+  width: 3.4rem;
+  height: 3.4rem;
+  pointer-events: none;
+}
+
+/* inner flap triangle — the page back side, letterpress red */
+.specimen-fold::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: var(--vermilion);
+  clip-path: polygon(0 0, 0 100%, 100% 100%);
+}
+
+/* section numbering — editorial rhythm */
+
+.sec-no {
+  font-family: var(--font-mono);
+  font-weight: 400;
+  font-size: 0.62em;
+  letter-spacing: 0.14em;
+  color: var(--accent-text);
+  vertical-align: 0.45em;
+  margin-right: 0.6em;
+}
+
+/* entrance: content lifts once, quietly; never loops */
+
+@media (prefers-reduced-motion: no-preference) {
+  .js [data-reveal] {
+    opacity: 0;
+    transform: translateY(14px);
+    transition: opacity 0.55s ease, transform 0.55s ease;
+  }
+
+  .js [data-reveal].in {
+    opacity: 1;
+    transform: none;
+  }
 }
 
 /* --- stats ----------------------------------------------------------------- */

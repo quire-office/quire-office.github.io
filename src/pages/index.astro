@@ -7,37 +7,55 @@ import Base from '../layouts/Base.astro';
   path="/"
 >
   <section class="hero">
-    <div class="wrap">
-      <p class="eyebrow"><span class="tick">●</span> Private preview — opens when the foundations hold</p>
-      <h1>Lossless Office document engines in Rust.</h1>
-      <p class="sub">
-        Parts Quire doesn't touch are written back byte-for-byte. The layout pipeline —
-        Knuth-Plass optimal line breaking, UAX#14 break rules, incremental pagination, real
-        font metrics — produces display lists that both a native and a browser renderer
-        consume from the same core.
-      </p>
-      <p class="sub muted" lang="zh-Hant" style="margin-top:0.9rem;">
-        以 Rust 打造的無損 Office 文件引擎：未觸碰的部分原字節寫回，同一核心同時餵給原生與瀏覽器渲染器。
-      </p>
-      <div class="hero-actions">
-        <a class="btn" href="/playground">Try the playground</a>
-        <a class="btn btn-ghost" href="/roadmap">Read the roadmap</a>
+    <div class="wrap hero-grid">
+      <div class="hero-copy">
+        <p class="eyebrow"><span class="tick">●</span> Private preview — opens when the foundations hold</p>
+        <h1>Lossless Office document engines in&nbsp;Rust.</h1>
+        <p class="sub">
+          Parts Quire doesn't touch are written back byte-for-byte. The layout pipeline —
+          Knuth-Plass optimal line breaking, UAX#14 break rules, incremental pagination, real
+          font metrics — produces display lists that both a native and a browser renderer
+          consume from the same core.
+        </p>
+        <p class="sub muted" lang="zh-Hant" style="margin-top:0.9rem;">
+          以 Rust 打造的無損 Office 文件引擎：未觸碰的部分原字節寫回，同一核心同時餵給原生與瀏覽器渲染器。
+        </p>
+        <div class="hero-actions">
+          <a class="btn" href="/playground">Try the playground</a>
+          <a class="btn btn-ghost" href="/roadmap">Read the roadmap</a>
+        </div>
       </div>
+
+      <figure class="specimen" aria-label="Typeset page specimen produced by the Quire layout engine">
+        <div class="specimen-sheet">
+          <div class="specimen-lines" lang="zh-Hant">
+            <p class="set-line">無損不是承諾，是結構：引擎未觸碰的 ZIP entry，寫回時一個位元組都不會變動。</p>
+            <p class="set-line">The page beside you is justified by <em>Knuth–Plass</em> — every break point chosen, never guessed.</p>
+            <p class="set-line"><span class="fold-red">斷</span>點由最佳化求出，而不是逐詞貪婪地塞進行寬；增量重排 p95 低於 8 ms。</p>
+            <p class="set-line">Everything here is a rendering target: display lists out, pixels in.</p>
+          </div>
+          <figcaption>
+            <span>quire-cli render · p. 1</span>
+            <span>KP + UAX#14 · shaped metrics</span>
+          </figcaption>
+        </div>
+        <div class="specimen-fold" aria-hidden="true"></div>
+      </figure>
     </div>
   </section>
 
   <section class="wrap" aria-labelledby="evidence-h">
-    <h2 id="evidence-h" style="margin-top:0;">Evidence, not promises</h2>
+    <h2 id="evidence-h"><span class="sec-no" aria-hidden="true">§ 01</span> Evidence, not promises</h2>
     <div class="stats">
-      <div>
-        <span class="num">399/399</span>
+      <div class="stat" data-reveal>
+        <span class="num" data-count="399" data-suffix="/399">399/399</span>
         <span class="lbl">real-world corpus files round-trip byte-identical in CI — ZIP64 and unknown extensions included</span>
       </div>
-      <div>
+      <div class="stat" data-reveal>
         <span class="num">2 × 2</span>
         <span class="lbl">CI matrix: ubuntu / Windows × native + wasm32-unknown-unknown</span>
       </div>
-      <div>
+      <div class="stat" data-reveal>
         <span class="num">&lt; 54 KB</span>
         <span class="lbl">gzipped first wasm payload — CRDT collaboration code lives in a deferred chunk</span>
       </div>
@@ -45,25 +63,25 @@ import Base from '../layouts/Base.astro';
   </section>
 
   <section class="wrap" aria-labelledby="formats-h">
-    <h2 id="formats-h" style="margin-top:1rem;">One lossless core, three document formats</h2>
-    <p>
+    <h2 id="formats-h"><span class="sec-no" aria-hidden="true">§ 02</span> One lossless core, three document formats</h2>
+    <p class="lede">
       The bet: DOCX, XLSX and PPTX share most of what is hard — the OPC container
       (zip + XML, lossless at byte level), OOXML part/model handling, and the same
       lossless discipline. Each format reuses that core instead of forking it, and keeps
       the layout model its format demands.
     </p>
     <div class="formats">
-      <article>
+      <article class="fmt" data-reveal>
         <div class="fmt-tag"><span>DOCX</span><span class="fmt-state now">Now</span></div>
         <h3>Flow</h3>
         <p>Lossless round-trip plus the line-breaking and pagination pipeline — what the private preview runs on.</p>
       </article>
-      <article>
+      <article class="fmt" data-reveal>
         <div class="fmt-tag"><span>XLSX</span><span class="fmt-state">Next</span></div>
         <h3>Grid</h3>
         <p>Sibling format crate on the same OPC/lossless core: workbook model, formula engine, sheet render list.</p>
       </article>
-      <article>
+      <article class="fmt" data-reveal>
         <div class="fmt-tag"><span>PPTX</span><span class="fmt-state">Then</span></div>
         <h3>Canvas</h3>
         <p>Slide and shape model reusing the layout and shaping crates; its own presentation render list.</p>
@@ -76,21 +94,21 @@ import Base from '../layouts/Base.astro';
   </section>
 
   <section class="wrap" aria-labelledby="principles-h">
-    <h2 id="principles-h">Principles the build enforces</h2>
+    <h2 id="principles-h"><span class="sec-no" aria-hidden="true">§ 03</span> Principles the build enforces</h2>
     <div class="rows">
-      <div class="row">
+      <div class="row" data-reveal>
         <div class="k">Lossless by construction</div>
         <p>Untouched ZIP entries are copied byte-for-byte on write-back; <code>roundtrip --check</code> plus a 400-file corpus gate it on every commit across two OSes.</p>
       </div>
-      <div class="row">
+      <div class="row" data-reveal>
         <div class="k">One core, two targets</div>
         <p>The engine compiles to native and <code>wasm32-unknown-unknown</code>. The browser shell is a thin platform adapter, not a second implementation.</p>
       </div>
-      <div class="row">
+      <div class="row" data-reveal>
         <div class="k">Layering, machine-checked</div>
         <p>Format crates never import shells; shells enter through one engine API. A CI script enforces the boundary instead of a code review convention.</p>
       </div>
-      <div class="row">
+      <div class="row" data-reveal>
         <div class="k">Real typesetting</div>
         <p>Shaped advances against real font metrics, Knuth-Plass optimal breaks, incremental pagination with p95 reflow under 8 ms.</p>
       </div>
@@ -98,7 +116,7 @@ import Base from '../layouts/Base.astro';
   </section>
 
   <section class="wrap" aria-labelledby="waitlist-h">
-    <h2 id="waitlist-h">Opening soon</h2>
+    <h2 id="waitlist-h"><span class="sec-no" aria-hidden="true">§ 04</span> Opening soon</h2>
     <p>
       The engine is in private preview while the foundations — XLSX groundwork and the
       collaborative layer — hold. When the site opens, this section becomes a one-field
