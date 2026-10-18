@@ -44,10 +44,13 @@
 
 html {
   -webkit-text-size-adjust: 100%;
+  /* 暗色區塊延伸到可視區外時，canvas 底色跟隨紙色，避免右側露白縫 */
+  background: var(--bg);
 }
 
 body {
   margin: 0;
+  overflow-x: clip; /* 保險絲：任何 1px 級橫向溢出都不該變成橫滾＋右白帶 */
   background: var(--bg);
   color: var(--fg);
   font-family: var(--font-serif);
@@ -218,6 +221,7 @@ code {
   margin-left: auto;
   display: flex;
   gap: 1.4rem;
+  flex-wrap: wrap; /* 窄螢幕無 JS 時換行而不是撐破 viewport */
 }
 
 .site-nav a {
@@ -241,6 +245,80 @@ code {
 .site-nav a[aria-current="page"] {
   color: var(--fg);
   border-bottom-color: var(--vermilion);
+}
+
+/* --- 手機側邊欄（drawer）：無 JS 時保持水平列換行 ------------------------- */
+
+.site-menu-btn {
+  display: none;
+  margin-left: auto;
+  width: 2.6rem;
+  height: 2.6rem;
+  border: 1px solid var(--rule);
+  background: transparent;
+  cursor: pointer;
+  padding: 0;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+}
+
+.site-menu-btn .bar {
+  display: block;
+  width: 18px;
+  height: 1.5px;
+  background: var(--fg);
+  transition: transform 0.28s ease, opacity 0.2s ease;
+}
+
+.site-menu-btn[aria-expanded="true"] .bar:nth-child(1) { transform: translateY(5.5px) rotate(45deg); }
+.site-menu-btn[aria-expanded="true"] .bar:nth-child(2) { opacity: 0; }
+.site-menu-btn[aria-expanded="true"] .bar:nth-child(3) { transform: translateY(-5.5px) rotate(-45deg); }
+
+html.js .site-scrim {
+  position: fixed;
+  inset: 0;
+  background: rgba(17, 17, 17, 0.42);
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.3s ease, visibility 0.3s;
+  z-index: 40;
+}
+html.js body.nav-open .site-scrim { opacity: 1; visibility: visible; }
+
+@media (max-width: 820px) {
+  html.js .site-menu-btn { display: inline-flex; }
+
+  html.js .site-nav {
+    position: fixed;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 50;
+    margin-left: 0;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0;
+    width: min(19rem, 82vw);
+    padding: 5.2rem 1.5rem 2rem;
+    background: var(--bg);
+    border-left: 1px solid var(--rule);
+    box-shadow: -14px 0 34px rgba(17, 17, 17, 0.16);
+    transform: translateX(102%);
+    visibility: hidden;
+    transition: transform 0.34s cubic-bezier(0.22, 0.61, 0.36, 1), visibility 0s linear 0.34s;
+    overflow-y: auto;
+  }
+  html.js body.nav-open .site-nav { transform: translateX(0); visibility: visible; transition: transform 0.34s cubic-bezier(0.22, 0.61, 0.36, 1), visibility 0s; }
+
+  html.js .site-nav a {
+    font-size: 0.92rem;
+    padding: 1rem 0.2rem;
+    border-bottom: 1px solid var(--rule);
+    justify-content: flex-start;
+  }
+  html.js .site-nav a[aria-current="page"] { border-bottom-color: var(--rule); color: var(--vermilion); }
 }
 
 /* --- hero ----------------------------------------------------------------- */

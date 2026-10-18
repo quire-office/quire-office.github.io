@@ -10,6 +10,13 @@
 .quire-home .kicker{font-family:var(--font-mono);font-size:.7rem;letter-spacing:.18em;
   text-transform:uppercase;color:#A8A59D;margin:0 0 1.5rem}
 .quire-home .kicker b{color:var(--vermilion);font-weight:400}
+.quire-home .kicker-row{display:flex;align-items:baseline;justify-content:space-between;
+  gap:1rem;flex-wrap:wrap}
+.quire-home .kicker-row .kicker{margin-bottom:1.5rem}
+.quire-home .kicker-gh{display:inline-flex;align-items:center;gap:.4rem;margin-bottom:1.5rem;
+  font-family:var(--font-mono);font-size:.7rem;letter-spacing:.14em;text-transform:uppercase;
+  color:#EDEAE3;text-decoration:none;border-bottom:1px solid rgba(237,234,227,.35);padding-bottom:.15rem}
+.quire-home .kicker-gh:hover{color:var(--vermilion);border-bottom-color:var(--vermilion)}
 .quire-home .hero-d h1{font-size:clamp(2.3rem,5.2vw,4.1rem);line-height:1.04;letter-spacing:-.025em;
   font-weight:600;margin:0 0 1.3rem;text-wrap:balance;color:#EDEAE3}
 .quire-home .hero-d h1 .lit{color:var(--vermilion)}
