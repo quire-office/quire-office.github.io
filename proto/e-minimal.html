@@ -1,0 +1,199 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Quire — proposal E · Minimal doc-style</title>
+<style>
+@font-face{font-family:"Source Serif 4";font-weight:200 900;font-display:swap;
+  src:url("../public/fonts/SourceSerif4-var-latin.woff2") format("woff2");}
+@font-face{font-family:"IBM Plex Mono";font-weight:400;font-display:swap;
+  src:url("../public/fonts/IBMPlexMono-400-latin.woff2") format("woff2");}
+:root{--ink:#111;--paper:#FAF8F4;--vermilion:#C43120;--muted:#595753;
+  --rule:rgba(17,17,17,.14);--panel:#f2efe8;
+  --serif:"Source Serif 4",Georgia,serif;--mono:"IBM Plex Mono",monospace;
+  --sans:-apple-system,"Segoe UI",system-ui,sans-serif;}
+*{box-sizing:border-box}body{margin:0;background:var(--paper);color:var(--ink);
+  font-family:var(--sans);font-size:16px;line-height:1.7;-webkit-font-smoothing:antialiased}
+a{color:inherit;text-decoration:none}
+.badge{position:fixed;top:4.2rem;right:1rem;z-index:90;font-family:var(--mono);font-size:.62rem;
+  letter-spacing:.14em;text-transform:uppercase;color:var(--muted);border:1px solid var(--rule);
+  background:var(--paper);padding:.28rem .6rem}
+
+/* vitepress-like: thin sticky header + sidebar + content column */
+.topbar{position:fixed;inset:0 0 auto 0;z-index:50;height:3.4rem;display:flex;align-items:center;
+  gap:1.5rem;padding:0 1.6rem;background:rgba(250,248,244,.94);border-bottom:1px solid var(--rule);
+  backdrop-filter:blur(6px)}
+.logo{font-weight:700;font-size:1.06rem;font-family:var(--serif)}
+.logo i{font-style:normal;color:var(--vermilion)}
+.topnav{display:flex;gap:1.35rem;font-size:.86rem;color:var(--muted)}
+.topnav a:hover,.topnav a.on{color:var(--ink)}
+.topnav a.on{box-shadow:inset 0 -2px 0 var(--vermilion)}
+.search{margin-left:auto;font-family:var(--mono);font-size:.74rem;color:var(--muted);
+  border:1px solid var(--rule);padding:.34rem .8rem;background:var(--panel);cursor:pointer}
+.search kbd{font-family:var(--mono);border:1px solid var(--rule);padding:0 .3em;margin-left:.6rem;
+  border-radius:2px;background:var(--paper)}
+
+.layout{display:grid;grid-template-columns:15rem minmax(0,1fr);max-width:78rem;margin-inline:auto;
+  padding-inline:1.6rem}
+aside{position:sticky;top:3.4rem;align-self:start;height:calc(100vh - 3.4rem);
+  padding-block:2rem;border-right:1px solid var(--rule)}
+.side-h{font-family:var(--mono);font-size:.68rem;letter-spacing:.14em;text-transform:uppercase;
+  color:var(--muted);margin:1.6rem 0 .6rem}
+.side-h:first-child{margin-top:0}
+aside a{display:block;font-size:.86rem;color:var(--muted);padding:.28rem 0 .28rem .9rem;
+  border-left:2px solid transparent}
+aside a:hover{color:var(--ink)}
+aside a.on{color:var(--vermilion);border-color:var(--vermilion)}
+
+main{padding:5.6rem 0 5rem;min-width:0}
+.kicker{font-family:var(--mono);font-size:.72rem;letter-spacing:.1em;color:var(--vermilion);
+  text-transform:uppercase;margin:0 0 1.2rem}
+h1{font-family:var(--serif);font-size:clamp(2.1rem,4.6vw,3.1rem);line-height:1.12;
+  letter-spacing:-.02em;font-weight:700;margin:0 0 .8rem;text-wrap:balance}
+.lead{font-size:1.12rem;color:var(--muted);max-width:62ch;margin-bottom:2.4rem}
+.hero-btns{display:flex;gap:.7rem;margin-bottom:3.4rem;flex-wrap:wrap}
+.btn{font-size:.86rem;font-weight:600;padding:.6rem 1.15rem;border:1px solid var(--ink);
+  background:var(--ink);color:var(--paper);transition:background .15s,color .15s}
+.btn:hover{background:transparent;color:var(--ink)}
+.btn.ghost{background:transparent;color:var(--ink);border-color:var(--rule)}
+.btn.ghost:hover{border-color:var(--ink)}
+
+h2{font-family:var(--serif);font-size:1.5rem;font-weight:700;letter-spacing:-.01em;margin:3.4rem 0 1rem;
+  scroll-margin-top:4.6rem}
+h2 .hash{color:var(--vermilion);font-family:var(--mono);font-size:.8em;margin-left:.35em;
+  opacity:0;transition:opacity .15s}
+h2:hover .hash{opacity:1}
+p{max-width:68ch;color:#333}
+
+/* feature grid — restrained, vitepress-like */
+.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--rule);
+  border:1px solid var(--rule);margin:1.4rem 0}
+.cell{background:var(--paper);padding:1.35rem}
+.cell .n{font-family:var(--mono);font-size:1.5rem;font-weight:500;letter-spacing:-.02em}
+.cell .n i{font-style:normal;color:var(--vermilion)}
+.cell .t{font-size:.8rem;color:var(--muted);margin-top:.5rem;line-height:1.55}
+@media(max-width:960px){.layout{grid-template-columns:1fr}aside{display:none}
+  .grid{grid-template-columns:1fr}}
+
+/* pipeline as ordered list w/ minimal scroll fade (doc-style: subtle motion only) */
+.flow{counter-reset:s;border-top:1px solid var(--rule)}
+.flow li{list-style:none;border-bottom:1px solid var(--rule);padding:1.15rem 0 1.15rem 3rem;
+  position:relative}
+.flow li::before{counter-increment:s;content:"0" counter(s);position:absolute;left:0;top:1.15rem;
+  font-family:var(--mono);font-size:.74rem;color:var(--vermilion);letter-spacing:.1em}
+.flow b{font-weight:600}
+.flow span{color:var(--muted);font-size:.92rem}
+
+/* code block (doc staple) */
+pre{background:#101216;color:#C9C6BE;font-family:var(--mono);font-size:.8rem;line-height:1.75;
+  padding:1.1rem 1.3rem;overflow:auto;position:relative;border:1px solid rgba(0,0,0,.4)}
+pre .c{color:#E4574A}.copy{position:absolute;top:.55rem;right:.55rem;font-family:var(--mono);
+  font-size:.66rem;color:#A8A59D;border:1px solid rgba(237,234,227,.25);padding:.2rem .5rem;
+  background:transparent;cursor:pointer}
+.copy:hover{color:#EDEAE3}
+
+/* format table */
+table{border-collapse:collapse;width:100%;max-width:60rem;font-size:.92rem}
+th,td{text-align:left;border-bottom:1px solid var(--rule);padding:.65rem .8rem .65rem 0}
+th{font-family:var(--mono);font-size:.7rem;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+td .st{font-family:var(--mono);font-size:.7rem;letter-spacing:.1em;color:var(--muted)}
+td .st.now{color:var(--vermilion)}
+
+.nextprev{display:flex;justify-content:space-between;margin-top:4rem;border-top:1px solid var(--rule);
+  padding-top:1.4rem;font-size:.9rem}
+.nextprev a{color:var(--vermilion)}
+.nextprev small{display:block;color:var(--muted);font-size:.72rem;font-family:var(--mono);
+  letter-spacing:.08em;text-transform:uppercase}
+footer{border-top:1px solid var(--rule);margin-top:2rem;padding:2rem 0 3rem;text-align:center;
+  font-family:var(--mono);font-size:.72rem;color:var(--muted)}
+/* minimal motion: one-time gentle fade-up only */
+@media (prefers-reduced-motion:no-preference){
+  .fade{opacity:0;transform:translateY(10px);transition:opacity .5s ease,transform .5s ease}
+  .fade.in{opacity:1;transform:none}
+}
+</style>
+</head>
+<body>
+<div class="badge">Proposal E · minimal</div>
+<div class="topbar">
+  <span class="logo">Quire<i>.</i></span>
+  <nav class="topnav"><a href="#" class="on">Home</a><a href="#">Roadmap</a><a href="#">Playground</a><a href="#">Docs</a></nav>
+  <span class="search">Search docs <kbd>⌘K</kbd></span>
+</div>
+<div class="layout">
+  <aside>
+    <div class="side-h">Guide</div>
+    <a href="#why" class="on">Why lossless</a>
+    <a href="#pipeline">The pipeline</a>
+    <a href="#install">Quick start</a>
+    <a href="#formats">Formats</a>
+    <div class="side-h">Evidence</div>
+    <a href="#numbers">Corpus &amp; CI</a>
+  </aside>
+  <main>
+    <p class="kicker">● Private preview — one core · two targets</p>
+    <h1>Lossless Office document engines in Rust</h1>
+    <p class="lead">DOCX round-trips byte-for-byte on untouched parts. Line breaking is
+      Knuth–Plass optimal with UAX#14 rules. The same core compiles to native and wasm —
+      the browser is not a second implementation.</p>
+    <div class="hero-btns">
+      <a class="btn" href="#">Try the playground</a>
+      <a class="btn ghost" href="#">Read the roadmap</a>
+    </div>
+
+    <h2 id="why">Why lossless<a class="hash" href="#why">#</a></h2>
+    <p>Office files die quietly in tools that don't understand parts of them. Quire treats
+      every OPC entry as a claim: parse what you can model, re-emit everything else
+      <b>exactly as received</b>. The CI gate proves it — 399 real-world files, byte-identical,
+      every push, two OSes.</p>
+    <div class="grid fade">
+      <div class="cell"><div class="n">399<i>/399</i></div><div class="t">corpus files round-trip byte-identical in CI</div></div>
+      <div class="cell"><div class="n">&lt;8<i> ms</i></div><div class="t">p95 incremental reflow — dirty-interval pagination</div></div>
+      <div class="cell"><div class="n">2×2</div><div class="t">OS × target CI matrix (native + wasm32)</div></div>
+    </div>
+
+    <h2 id="pipeline">The pipeline<a class="hash" href="#pipeline">#</a></h2>
+    <ol class="flow">
+      <li class="fade"><b>Parse</b> — <span>OPC unzipped entry by entry; unknown parts claimed, never dropped.</span></li>
+      <li class="fade"><b>Shape</b> — <span>shaped advances against real fonts: kerning, CJK widths, fallback chains.</span></li>
+      <li class="fade"><b>Break</b> — <span>Knuth–Plass minimises total badness per paragraph; UAX#14 guards legality.</span></li>
+      <li class="fade"><b>Paginate</b> — <span>paragraph caches reflow only the dirty interval; background break passes.</span></li>
+      <li class="fade"><b>Emit</b> — <span>one display list; native and wasm renderers draw the same numbers.</span></li>
+    </ol>
+
+    <h2 id="install">Quick start<a class="hash" href="#install">#</a></h2>
+    <pre><code><span class="c">$</span> cargo run -p quire-cli -- roundtrip corpus --check
+<span class="c">✓</span> 399/399 byte-identical   <span class="c">✓</span> 1 quarantined (upstream CRC corruption)
+<span class="c">$</span> cargo run -p quire-cli -- render report.docx --out out/
+<span class="c">→</span> out/report-p0.svg … p11  + pagebreaks.json</code><button class="copy" onclick="navigator.clipboard.writeText(this.parentElement.innerText.replace(/^\$\s/gm,'').replace(/^(✓|→)\s/gm,''))">copy</button></pre>
+
+    <h2 id="formats">Formats<a class="hash" href="#formats">#</a></h2>
+    <table>
+      <tr><th>Format</th><th>Layout regime</th><th>State</th></tr>
+      <tr><td><b>DOCX</b></td><td>flow — breaks, pagination, display lists</td><td><span class="st now">Now</span></td></tr>
+      <tr><td><b>XLSX</b></td><td>grid — workbook model, formula engine</td><td><span class="st">Next</span></td></tr>
+      <tr><td><b>PPTX</b></td><td>canvas — slide/shape model, same contract</td><td><span class="st">Then</span></td></tr>
+    </table>
+
+    <div class="nextprev">
+      <a href="#"><small>Previous</small>Introduction</a>
+      <a href="#" style="text-align:right"><small>Next</small>Architecture &amp; preview notes</a>
+    </div>
+  </main>
+</div>
+<footer>Set in Source Serif 4 · Apache-2.0 · typefaces SIL OFL 1.1 · © 2026 Quire</footer>
+<script>
+/* minimal doc-style: sidebar scroll-spy + one-time fade — no theatrics */
+const links=[...document.querySelectorAll('aside a[href^="#"]')];
+const heads=links.map(l=>document.querySelector(l.getAttribute('href'))).filter(Boolean);
+function spy(){
+  let idx=0;
+  heads.forEach((h,i)=>{if(h.getBoundingClientRect().top<140)idx=i;});
+  links.forEach((l,i)=>l.classList.toggle('on',i===idx));
+}
+addEventListener('scroll',spy,{passive:true});spy();
+const io=new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting){e.target.classList.add('in');io.unobserve(e.target);}}),{rootMargin:'0px 0px -6% 0px'});
+document.querySelectorAll('.fade').forEach(el=>io.observe(el));
+</script>
+</body></html>

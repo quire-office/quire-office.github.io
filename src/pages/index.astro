@@ -46,6 +46,7 @@ import '../styles/home.css';
       </div>
     </div>
     <div class="scroll-cue" id="cue">scroll to press the sheet<i></i></div>
+    <p class="stack-hint" aria-hidden="true">拖曳轉動 · 點擊翻開 · ←→ 換頁</p>
   </section>
 
   <!-- ══ pipeline：sticky rail ＋ SVG 描線 ══ -->
@@ -260,36 +261,122 @@ if (linesCard) {
   linesCard.innerHTML = h;
 }
 
-/* ── 3D 紙堆：滾動壓平＋滑鼠視差 ── */
-const scene = $('#scene'), hero = $('#hero'), cue = $('#cue');
+/* ── 3D 紙堆：正面朝前＋進場發牌＋滑鼠視差＋拖曳軌道＋點擊聚焦 ── */
+const scene = $('#scene'), hero = $('#hero'), cue = $('#cue'), stackZone = $('#stackZone');
 if (scene) {
   const tilt = $('#tilt');
   const planes = [...scene.querySelectorAll('.plane')];
-  const stack = { rx: 58, rz: -14, sep: 1 };
+  const n = planes.length;
+  const stack = { rx: 7, rz: -3, sep: 1 };              // 初始正面朝前，深淺靠 Z 距
+  const home = { rx: 7, rz: -3 };
+  const po = planes.map((_, i) => ({ fx: 0, fz: 0, s: 1, rz: 0, px: 0 })); // 每層可動畫狀態
+  let focused = -1;
+
   const apply = () => {
     scene.style.transform = `rotateX(${stack.rx}deg) rotateZ(${stack.rz}deg)`;
-    planes.forEach((p, i) => { p.style.transform = `translate(-50%,-50%) translateZ(${i * stack.sep * 120}px)`; });
+    planes.forEach((pl, i) => {
+      const p = po[i];
+      pl.style.transform = `translate(-50%,-50%) translate3d(${p.fx + p.px}px,0,${i * stack.sep * 120 + p.fz}px) rotateZ(${p.rz}deg) scale(${p.s})`;
+    });
   };
+  const spread = () => (innerWidth < 900 ? 96 : 250);
+
   if (RM) {
-    stack.rx = 6; stack.rz = 0; stack.sep = 0; apply();
+    stack.rx = 5; stack.rz = 0; stack.sep = .35; apply();
     if (cue) cue.style.display = 'none';
   } else {
+    /* 進場：三張紙像發牌一樣依次滑入堆疊 */
     apply();
-    gsap.to(stack, { rx: 6, rz: 0, sep: 0, duration: 1, ease: 'none',
-      scrollTrigger: { trigger: hero, start: 'top top', end: 'bottom 30%', scrub: .55,
-        onUpdate: (s) => { if (cue) cue.style.opacity = String(Math.max(0, 1 - s.progress * 1.6)); } } });
+    planes.forEach((pl, i) => {
+      po[i].rz = (i - 1) * 9; po[i].fx = (i - 1) * spread() * .8;
+      pl.style.opacity = '0'; apply();
+      gsap.to(pl, { opacity: 1, duration: .5, delay: .15 + i * .16 });
+      gsap.to(po[i], { rz: 0, fx: 0, duration: 1.1, delay: .15 + i * .16, ease: 'power3.out', onUpdate: apply });
+    });
+    /* 閒置呼吸：整堆極緩上下浮動，讓畫面活著 */
+    gsap.to(stackZone, { y: 6, duration: 5.5, yoyo: true, repeat: -1, ease: 'sine.inOut', delay: 1.6 });
+
+    /* 滾動壓平（招牌動作保留）：正面 → 完全貼合成一張 */
+    gsap.to(stack, { rx: 0, rz: 0, sep: 0, duration: 1, ease: 'none',
+      scrollTrigger: { trigger: hero, start: 'top top', end: 'bottom 30%', scrub: .55, onUpdate: (s) => {
+        if (cue) cue.style.opacity = String(Math.max(0, 1 - s.progress * 1.6));
+        apply();
+      } } });
+
+    /* 滑鼠視差：整堆輕微转向＋每層按深度差動（近層動得多＝真景深） */
     const qx = gsap.quickTo(tilt, 'rotationY', { duration: .6, ease: 'power3' });
     const qy = gsap.quickTo(tilt, 'rotationX', { duration: .6, ease: 'power3' });
+    const qpx = po.map((p) => gsap.quickTo(p, 'px', { duration: .7, ease: 'power3', onUpdate: apply }));
     hero.addEventListener('pointermove', (e) => {
+      if (e.pointerType !== 'mouse') return;
       const r = hero.getBoundingClientRect();
-      qx(((e.clientX - r.left) / r.width - .5) * 10);
-      qy(((e.clientY - r.top) / r.height - .5) * -6);
+      const nx = (e.clientX - r.left) / r.width - .5, ny = (e.clientY - r.top) / r.height - .5;
+      qx(nx * 12); qy(ny * -7);
+      po.forEach((_, i) => qpx[i](nx * (i - (n - 1) / 2) * -26));
+    });
+
+    /* 拖曳軌道（僅滑鼠）：抓住紙堆轉，放手回彈到正面 */
+    let drag = null;
+    stackZone.addEventListener('pointerdown', (e) => {
+      if (e.pointerType !== 'mouse' || focused >= 0) return;
+      drag = { x: e.clientX, y: e.clientY, rx: stack.rx, rz: stack.rz, moved: 0 };
+      stackZone.setPointerCapture(e.pointerId);
+    });
+    stackZone.addEventListener('pointermove', (e) => {
+      if (!drag) return;
+      const dx = e.clientX - drag.x, dy = e.clientY - drag.y;
+      drag.moved = Math.max(drag.moved, Math.abs(dx) + Math.abs(dy));
+      stack.rz = Math.max(-26, Math.min(14, drag.rz + dx * .13));
+      stack.rx = Math.max(-6, Math.min(46, drag.rx - dy * .09));
+      apply();
+    });
+    const release = () => {
+      if (!drag) return;
+      const wasDrag = drag.moved > 5; drag = null;
+      if (wasDrag) { suppressClick = true; setTimeout(() => suppressClick = false, 0);
+        gsap.to(stack, { rx: home.rx, rz: home.rz, duration: 1.1, ease: 'power2.out', onUpdate: apply }); }
+    };
+    stackZone.addEventListener('pointerup', release);
+    stackZone.addEventListener('pointercancel', release);
+
+    /* 點擊聚焦：選中那張升到正前方，其餘向兩側讓開；再點同一張或點空白回位 */
+    let suppressClick = false;
+    const setFocus = (idx) => {
+      focused = (focused === idx) ? -1 : idx;
+      const sp = spread();
+      const others = [...Array(n).keys()].filter((i) => i !== idx);
+      planes.forEach((pl, i) => {
+        const p = po[i];
+        if (focused < 0) gsap.to(p, { fx: 0, fz: 0, s: 1, duration: .8, ease: 'power3.out', onUpdate: apply });
+        else if (i === idx) gsap.to(p, { fx: 0, fz: 300, s: 1.02, duration: .8, ease: 'power3.out', onUpdate: apply });
+        else gsap.to(p, { fx: (others.indexOf(i) - (others.length - 1) / 2) * sp, fz: -40, s: .93,
+          duration: .8, ease: 'power3.out', onUpdate: apply });
+      });
+    };
+    planes.forEach((pl, i) => {
+      pl.tabIndex = 0;
+      pl.addEventListener('click', (e) => {
+        if (suppressClick) return;
+        if (e.target.closest && e.target.closest('a')) return;
+        setFocus(i);
+      });
+      pl.addEventListener('pointerenter', () => scene.setAttribute('data-focus', pl.dataset.p));
+      pl.addEventListener('pointerleave', () => scene.removeAttribute('data-focus'));
+    });
+    stackZone.addEventListener('click', (e) => { if (!e.target.closest('.plane') && focused >= 0) setFocus(focused); });
+    /* 滾動開始時自動退回堆疊，避免聚焦態與壓平動畫打架 */
+    let lastY = scrollY;
+    addEventListener('scroll', () => {
+      if (focused >= 0 && Math.abs(scrollY - lastY) > 4) setFocus(focused);
+      lastY = scrollY;
+    }, { passive: true });
+    /* 鍵盤：Tab 進入後 ←→ 輪流聚焦、Esc 退出 */
+    stackZone.addEventListener('keydown', (e) => {
+      if (e.key === 'ArrowRight') { setFocus(focused < 0 ? 0 : (focused + 1) % n); e.preventDefault(); }
+      else if (e.key === 'ArrowLeft') { setFocus(focused < 0 ? n - 1 : (focused - 1 + n) % n); e.preventDefault(); }
+      else if (e.key === 'Escape' && focused >= 0) { setFocus(focused); e.preventDefault(); }
     });
   }
-  planes.forEach((p) => {
-    p.addEventListener('pointerenter', () => scene.setAttribute('data-focus', p.dataset.p));
-    p.addEventListener('pointerleave', () => scene.removeAttribute('data-focus'));
-  });
 }
 
 /* ── pipeline scroll-spy ＋ SVG 描線 ── */

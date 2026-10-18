@@ -1,0 +1,465 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Quire — proposal D · The Sheet (3D)</title>
+<style>
+@font-face{font-family:"Source Serif 4";font-weight:200 900;font-display:swap;
+  src:url("../public/fonts/SourceSerif4-var-latin.woff2") format("woff2");}
+@font-face{font-family:"IBM Plex Mono";font-weight:400;font-display:swap;
+  src:url("../public/fonts/IBMPlexMono-400-latin.woff2") format("woff2");}
+:root{--ink:#111;--paper:#FAF8F4;--vermilion:#C43120;--muted:#595753;--charcoal:#181A1E;
+  --desk:#23252A;--rule:rgba(17,17,17,.16);--rule-d:rgba(237,234,227,.22);--panel:#f2efe8;
+  --serif:"Source Serif 4",Georgia,serif;--mono:"IBM Plex Mono",monospace;}
+*{box-sizing:border-box}body{margin:0;background:var(--paper);color:var(--ink);
+  font-family:var(--serif);font-size:17px;line-height:1.6;-webkit-font-smoothing:antialiased}
+.wrap{max-width:78rem;margin-inline:auto;padding-inline:1.5rem}
+a{color:inherit}
+.badge{position:fixed;top:4.4rem;right:1.2rem;z-index:90;font-family:var(--mono);font-size:.62rem;
+  letter-spacing:.14em;text-transform:uppercase;color:var(--muted);border:1px solid var(--rule);
+  background:var(--paper);padding:.3rem .6rem}
+header{position:fixed;inset:0 0 auto 0;z-index:60;background:transparent;
+  border-bottom:1px solid transparent;transition:background .3s,border-color .3s}
+header.scrolled{background:rgba(250,248,244,.94);border-color:var(--rule);backdrop-filter:blur(6px)}
+.hd{display:flex;align-items:baseline;gap:1rem;min-height:3.4rem}
+.logo{font-weight:700;font-size:1.15rem;text-decoration:none;color:#EDEAE3;transition:color .3s}
+header.scrolled .logo{color:var(--ink)}
+.logo i{font-style:normal;color:var(--vermilion)}
+nav{margin-left:auto;display:flex;gap:1.3rem}
+nav a{font-family:var(--mono);font-size:.72rem;letter-spacing:.1em;text-transform:uppercase;
+  text-decoration:none;color:#A8A59D;transition:color .3s}
+nav a:hover{color:#EDEAE3}
+header.scrolled nav a{color:var(--muted)}
+header.scrolled nav a:hover{color:var(--ink)}
+
+/* ══ HERO — the sheet stack (CSS 3D, scrubbed) ══ */
+.hero{background:var(--charcoal);color:#EDEAE3;padding:7rem 0 22vh;position:relative;overflow:hidden}
+.hero .wrap{display:grid;grid-template-columns:minmax(0,6fr) minmax(0,6fr);gap:3rem;
+  align-items:center;position:relative;z-index:3}
+.kicker{font-family:var(--mono);font-size:.7rem;letter-spacing:.18em;text-transform:uppercase;
+  color:#A8A59D;margin:0 0 1.5rem}
+.kicker b{color:var(--vermilion);font-weight:400}
+h1{font-size:clamp(2.5rem,5.6vw,4.4rem);line-height:1.03;letter-spacing:-.025em;font-weight:700;
+  margin:0 0 1.3rem;text-wrap:balance}
+h1 .lit{color:var(--vermilion)}
+.lede{color:#A8A59D;font-size:1.08rem;max-width:44ch}
+.hero-actions{display:flex;gap:.9rem;margin-top:2rem;flex-wrap:wrap}
+.btn{font-family:var(--mono);font-size:.8rem;letter-spacing:.06em;text-decoration:none;
+  padding:.7rem 1.2rem;border:1px solid #EDEAE3;background:#EDEAE3;color:var(--charcoal);
+  transition:transform .18s cubic-bezier(.2,.8,.2,1)}
+.btn:hover{transform:translate(-2px,-2px)}.btn:active{transform:none}
+.btn.ghost{background:transparent;color:#EDEAE3;border-color:var(--rule-d)}
+.rain{position:absolute;inset:0;opacity:.10;pointer-events:none;font-family:var(--mono);
+  font-size:11px;line-height:1.9;color:#EDEAE3;overflow:hidden;columns:14;column-gap:1rem;
+  -webkit-mask-image:linear-gradient(90deg,transparent 0 42%,#000 58%);
+  mask-image:linear-gradient(90deg,transparent 0 42%,#000 58%)}
+.rain span{display:block;white-space:nowrap}
+
+.stack-zone{perspective:1600px;min-height:30rem;position:relative}
+.scene{position:absolute;inset:0;transform-style:preserve-3d;will-change:transform}
+.tilt{position:absolute;inset:0;transform-style:preserve-3d}
+.plane{position:absolute;left:50%;top:50%;width:min(30rem,86%);aspect-ratio:1/1.32;
+  transform-style:preserve-3d;transition:filter .3s}
+.plane .card{position:absolute;inset:0;padding:1.5rem 1.6rem;overflow:hidden}
+.p-bytes .card{background:var(--desk);border:1px solid var(--rule-d);color:#5c6069;
+  font-family:var(--mono);font-size:10.5px;line-height:1.85;letter-spacing:.04em}
+.p-bytes .card b{color:#8a8f99;font-weight:400}
+.p-bytes .card .r{color:var(--vermilion)}
+.p-lines .card{border:1px solid rgba(196,49,32,.55);background:rgba(196,49,32,.05)}
+.p-lines .tick{position:absolute;height:2px;background:var(--vermilion)}
+.p-lines .ln{position:absolute;height:1px;background:rgba(237,234,227,.35)}
+.p-type .card{background:var(--paper);color:var(--ink);
+  clip-path:polygon(0 0,calc(100% - 3rem) 0,100% 3rem,100% 100%,0 100%);
+  font-size:14.5px;line-height:1.85}
+.p-type .card p{margin:0 0 .8em}
+.p-type .card .hd{font-family:var(--mono);font-size:.66rem;letter-spacing:.14em;
+  color:var(--muted);margin-bottom:1rem;text-transform:uppercase}
+.p-type .card .red{color:var(--vermilion)}
+.plane .chip{position:absolute;left:50%;bottom:-2.4rem;transform:translateX(-50%) rotateX(38deg);
+  font-family:var(--mono);font-size:.62rem;letter-spacing:.16em;text-transform:uppercase;
+  color:#A8A59D;border:1px solid var(--rule-d);padding:.22rem .6rem;background:var(--charcoal);
+  opacity:0;transition:opacity .3s;white-space:nowrap}
+.scene[data-focus] .plane{filter:saturate(.55) opacity(.5)}
+.scene[data-focus="bytes"] .p-bytes,
+.scene[data-focus="lines"] .p-lines,
+.scene[data-focus="type"] .p-type{filter:none}
+.scene[data-focus="bytes"] .p-bytes .chip,
+.scene[data-focus="lines"] .p-lines .chip,
+.scene[data-focus="type"] .p-type .chip{opacity:1}
+.scroll-cue{position:absolute;left:50%;bottom:1.1rem;transform:translateX(-50%);z-index:5;
+  font-family:var(--mono);font-size:.66rem;letter-spacing:.16em;color:#A8A59D;text-transform:uppercase}
+.scroll-cue i{display:block;width:1px;height:2.2rem;background:var(--vermilion);margin:.5rem auto 0;
+  animation:cue 1.6s ease-in-out infinite}
+@keyframes cue{0%{transform:scaleY(.2);transform-origin:top;opacity:0}
+  30%{opacity:1}100%{transform:scaleY(1);transform-origin:top;opacity:0}}
+@media(max-width:900px){.hero .wrap{grid-template-columns:1fr}.stack-zone{min-height:24rem}
+  .hero{padding-bottom:16vh}}
+
+/* ══ pipeline (B, kept: user-approved motion) ══ */
+.pipe{display:grid;grid-template-columns:minmax(0,5fr) minmax(0,7fr);gap:4rem;padding-block:4.5rem}
+.pipe-sticky{position:sticky;top:4rem;align-self:start}
+.pipe-sticky h2{font-size:clamp(1.7rem,3vw,2.5rem);font-weight:700;letter-spacing:-.02em;margin:0 0 1rem}
+.pipe-sticky p{color:var(--muted);max-width:32ch}
+.rail{margin-top:1.8rem;display:flex;flex-direction:column;gap:.4rem}
+.rail button{all:unset;cursor:pointer;display:flex;gap:.8rem;align-items:baseline;
+  font-family:var(--mono);font-size:.73rem;letter-spacing:.08em;color:var(--muted);padding:.26rem 0}
+.rail button .no{color:var(--rule)}
+.rail button.on{color:var(--ink)}.rail button.on .no{color:var(--vermilion)}
+.stage{border-top:1px solid var(--rule);padding:3rem 0 3.4rem;min-height:70vh}
+.stage:last-child{border-bottom:1px solid var(--rule)}
+.stage .tag{font-family:var(--mono);font-size:.7rem;letter-spacing:.16em;text-transform:uppercase;
+  color:var(--vermilion);display:block;margin-bottom:.8rem}
+.stage h3{font-size:clamp(1.35rem,2.2vw,1.8rem);font-weight:700;margin:0 0 1rem}
+.stage p{color:var(--muted);max-width:52ch}
+.fig{margin-top:1.6rem;border:1px solid var(--rule);background:var(--panel);padding:1.3rem}
+.fig svg{width:100%;height:auto;display:block}
+.dl{stroke:#111;stroke-width:1.4;fill:none}.dl-red{stroke:var(--vermilion)}
+.dotfill{fill:#111}.dotred{fill:var(--vermilion)}
+.ln{font-family:var(--mono);font-size:10.5px;fill:#595753}
+@media(max-width:900px){.pipe{grid-template-columns:1fr;gap:1rem}.pipe-sticky{position:static}
+  .stage{min-height:auto}}
+
+/* ══ line-break theatre (scrubbed) ══ */
+.theatre{background:var(--panel);border-block:1px solid var(--rule);min-height:230vh}
+.theatre-sticky{position:sticky;top:3.4rem;min-height:calc(100vh - 3.4rem);
+  display:flex;align-items:center;padding-block:3rem}
+.theatre-inner{display:grid;grid-template-columns:minmax(0,7fr) minmax(0,4fr);gap:3rem;width:100%}
+.kicker2{font-family:var(--mono);font-size:.7rem;letter-spacing:.16em;text-transform:uppercase;
+  color:var(--muted);margin:0 0 .8rem}
+.kicker2 em{color:var(--vermilion);font-style:normal}
+.galley{font-size:1.04rem;line-height:1.85}
+.line{display:block;text-align:justify;text-align-last:justify;hyphens:auto;cursor:crosshair}
+.line:hover{background:rgba(196,49,32,.06)}
+.brk{display:none;color:var(--vermilion);font-family:var(--mono);font-size:.7em;vertical-align:.45em;margin-left:.3em}
+.badness{display:none;font-family:var(--mono);font-size:.62rem;color:var(--vermilion);margin-left:.5em}
+.line.lit .brk,.line.lit .badness{display:inline-block}
+.proof-side p{font-size:.95rem;color:var(--muted)}
+.proof-side .stat{font-family:var(--mono);font-size:.8rem;border-top:1px solid var(--rule);
+  padding-top:.8rem;margin-top:1.2rem}.proof-side .stat b{color:var(--vermilion);font-weight:400}
+@media(max-width:900px){.theatre-inner{grid-template-columns:1fr}.theatre{min-height:auto}
+  .theatre-sticky{position:static;min-height:0}}
+
+/* ══ reflow lab ══ */
+.lab{background:var(--charcoal);color:#EDEAE3;padding:5rem 0}
+.lab h2{font-size:clamp(1.6rem,3vw,2.2rem);font-weight:700;margin:0 0 .6rem}
+.lab .sub{color:#A8A59D;max-width:56ch;margin-bottom:2rem}
+.lab-frame{border:1px solid var(--rule-d);background:var(--paper);color:var(--ink);
+  padding:2rem;position:relative}
+.lab-text{font-size:17px;line-height:1.78;text-align:justify;hyphens:auto;max-width:100%;
+  transition:width .45s cubic-bezier(.2,.8,.2,1),font-size .3s}
+.controls{display:flex;flex-wrap:wrap;gap:2rem;margin-top:1.3rem;align-items:center}
+.ctrl{display:flex;align-items:center;gap:.8rem;font-family:var(--mono);font-size:.7rem;
+  letter-spacing:.08em;color:#A8A59D;text-transform:uppercase}
+input[type=range]{-webkit-appearance:none;appearance:none;width:11rem;height:2px;
+  background:rgba(237,234,227,.4);outline:none}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:16px;height:16px;
+  background:var(--vermilion);cursor:pointer;border:0}
+input[type=range]:focus-visible{outline:2px solid var(--vermilion);outline-offset:4px}
+.lab-meta{margin-left:auto;font-family:var(--mono);font-size:.72rem;color:#EDEAE3}
+.lab-meta b{color:var(--vermilion);font-weight:400}
+
+/* ══ counters + ledger ══ */
+h2.sec{font-size:clamp(1.5rem,2.6vw,2rem);font-weight:700;letter-spacing:-.015em;margin:0 0 2rem}
+.stats{display:flex;border-bottom:1px solid var(--rule)}
+.stat-cell{flex:1;padding:2.4rem 1.6rem;border-left:1px solid var(--rule);position:relative}
+.stat-cell:first-child{border-left:0}
+.stat-cell .n{font-size:clamp(2.2rem,4vw,3.4rem);font-weight:700;line-height:1;
+  font-variant-numeric:tabular-nums}
+.stat-cell .n i{font-style:normal;color:var(--vermilion)}
+.stat-cell .t{font-family:var(--mono);font-size:.72rem;color:var(--muted);margin-top:.7rem}
+@media(max-width:640px){.stats{flex-direction:column}.stat-cell{border-left:0;border-top:1px solid var(--rule)}}
+.fmt-row{border-bottom:1px solid var(--rule);padding:1.25rem 0;display:grid;
+  grid-template-columns:6.5rem 1fr auto;gap:1.4rem;align-items:baseline;cursor:pointer}
+.fmt-row:first-child{border-top:1px solid var(--rule)}
+.fmt-row:hover .name{color:var(--vermilion)}
+.fmt-row .tag{font-family:var(--mono);font-size:.78rem;letter-spacing:.1em}
+.fmt-row .name{font-size:1.3rem;font-weight:600;transition:color .2s}
+.fmt-row .st{font-family:var(--mono);font-size:.68rem;letter-spacing:.14em;color:var(--muted);text-transform:uppercase}
+.fmt-row .st.now{color:var(--vermilion)}
+.fmt-row .rev{grid-column:2/4;display:block;max-height:0;overflow:hidden;
+  transition:max-height .4s cubic-bezier(.2,.8,.2,1);font-family:var(--mono);font-size:.72rem;color:var(--muted)}
+.fmt-row.open .rev{max-height:5rem;margin-top:.4rem}
+footer{border-top:1px solid var(--rule);padding:3rem 0 4rem}
+.colophon{font-family:var(--mono);font-size:.76rem;color:var(--muted);line-height:2.2}
+.colophon b{color:var(--ink);font-weight:400}.colophon .red{color:var(--vermilion)}
+section.pad{padding:5rem 0}
+</style>
+</head>
+<body>
+<div class="badge">Proposal D · 3D art pole</div>
+<header><div class="wrap hd">
+  <a class="logo" href="#">Quire<i>.</i></a>
+  <nav><a href="#pipe">Pipeline</a><a href="#theatre">Breaks</a><a href="#lab">Lab</a></nav>
+</div></header>
+
+<section class="hero" id="hero">
+  <div class="rain" aria-hidden="true" id="rain"></div>
+  <div class="wrap">
+    <div>
+      <p class="kicker"><b>●</b> Private preview — one core · two targets</p>
+      <h1>A document in, the <span class="lit">same document</span> out — every line proven.</h1>
+      <p class="lede">Three planes, one file: the bytes you trust, the layout we prove, the page you
+        get. Scroll to collapse the stack — losslessness is the distance between them being zero.</p>
+      <div class="hero-actions">
+        <a class="btn" href="#">Try the playground</a>
+        <a class="btn ghost" href="#pipe">Walk the pipeline ↓</a>
+      </div>
+    </div>
+    <div class="stack-zone" id="stackZone">
+      <div class="scene" id="scene">
+        <div class="tilt" id="tilt">
+          <div class="plane p-bytes" data-p="bytes"><div class="card" id="bytesCard"></div>
+            <span class="chip">bytes · untouched ZIP entries</span></div>
+          <div class="plane p-lines" data-p="lines"><div class="card" id="linesCard"></div>
+            <span class="chip">model · KP break points</span></div>
+          <div class="plane p-type" data-p="type"><div class="card">
+            <div class="hd">quire / specimen</div>
+            <p>無損不是承諾，而是結構：引擎未觸碰的每一個位元組，都會在寫回時原樣出現。</p>
+            <p>The browser tab and the desktop share one layout core — same advances, same breaks, same display list.</p>
+            <p class="red">¶ every break proven, never guessed</p>
+            <p>Everything you see is a rendering target: display lists out, pixels in.</p>
+          </div><span class="chip">display list · your page</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="scroll-cue" id="cue">scroll to press the sheet<i></i></div>
+</section>
+
+<div class="wrap pipe" id="pipe">
+  <div class="pipe-sticky">
+    <h2>The pipeline.</h2>
+    <p>Five stages, one Rust core, compiled twice. Nothing is approximated twice.</p>
+    <div class="rail" id="rail"></div>
+  </div>
+  <div class="pipe-flow" id="flow">
+    <section class="stage" data-i="0">
+      <span class="tag">Stage 01 · parse</span><h3>The container opens, nothing is thrown away</h3>
+      <p>OPC is unzipped entry by entry. Every part — even ones Quire has never seen — is claimed,
+        content-addressed, held for write-back. Unknown is not the same as absent.</p>
+      <figure class="fig"><svg viewBox="0 0 640 150"><g class="draw">
+        <rect class="dl" x="10" y="40" width="120" height="70"/><text class="ln" x="30" y="80">.docx zip</text>
+        <path class="dl" d="M140 75 h60 m-12 -8 l12 8 -12 8"/>
+        <rect class="dl" x="215" y="10" width="150" height="32"/><text class="ln" x="228" y="31">document.xml ✓</text>
+        <rect class="dl" x="215" y="50" width="150" height="32"/><text class="ln" x="228" y="71">styles.xml ✓</text>
+        <rect class="dl dl-red" x="215" y="90" width="150" height="32"/><text class="ln" x="228" y="111">customXml/ ✓ untouched</text>
+        <path class="dl" d="M380 75 h60 m-12 -8 l12 8 -12 8"/>
+        <rect class="dl" x="455" y="40" width="160" height="70"/>
+        <text class="ln" x="470" y="70">held byte-for-byte</text><text class="ln" x="470" y="88">for write-back</text>
+      </g></svg></figure>
+    </section>
+    <section class="stage" data-i="1">
+      <span class="tag">Stage 02 · shape + break</span><h3>Real metrics, Knuth–Plass optimum</h3>
+      <p>Shaped advances against real fonts; breaks chosen jointly per paragraph to minimise total
+        badness. UAX#14 decides legality — KP decides what is right.</p>
+      <figure class="fig"><svg viewBox="0 0 640 150"><g class="draw">
+        <path class="dl" d="M10 120 C 90 120 120 40 200 40 S 320 110 400 70 560 30 630 20"/>
+        <path class="dl dl-red" d="M10 130 C 110 130 130 90 210 95 S 330 130 410 105 570 60 630 55"/>
+        <circle class="dotred" cx="200" cy="40" r="5"/><circle class="dotred" cx="400" cy="70" r="5"/>
+        <text class="ln" x="188" y="24">break</text><text class="ln" x="388" y="54">break</text>
+        <text class="ln" x="10" y="145">greedy per-line vs KP per-paragraph</text>
+      </g></svg></figure>
+    </section>
+    <section class="stage" data-i="2">
+      <span class="tag">Stage 03 · paginate</span><h3>One keystroke ≠ re-paginate the chapter</h3>
+      <p>Paragraph caches reflow only the dirty interval; breaks settle in background passes.
+        p95 incremental reflow under 8 ms. Output: a display list both renderers draw from.</p>
+      <figure class="fig"><svg viewBox="0 0 640 150"><g class="draw">
+        <rect class="dl" x="20" y="20" width="80" height="110"/><rect class="dl" x="115" y="20" width="80" height="110"/>
+        <rect class="dl dl-red" x="210" y="20" width="80" height="110"/>
+        <text class="ln" x="34" y="145">cached</text><text class="ln" x="129" y="145">cached</text>
+        <text class="ln" x="212" y="145">dirty → reflow</text>
+        <path class="dl dl-red" d="M305 75 h60 m-12 -8 l12 8 -12 8"/>
+        <rect class="dl" x="380" y="35" width="240" height="80"/>
+        <text class="ln" x="398" y="65">display list: {text, rect, line}</text>
+        <text class="ln" x="398" y="85">→ native renderer · → wasm canvas</text>
+      </g></svg></figure>
+    </section>
+  </div>
+</div>
+
+<section class="theatre" id="theatre"><div class="theatre-sticky"><div class="wrap theatre-inner">
+  <div class="proof">
+    <p class="kicker2">The <em>line-break theatre</em> — scroll to set the type</p>
+    <h2 class="sec" style="margin-bottom:1.4rem">One paragraph, proven optimal.</h2>
+    <div class="galley" id="galley"></div>
+  </div>
+  <aside class="proof-side">
+    <p class="kicker2">What you're watching</p>
+    <p>Knuth–Plass chooses break points that minimise total badness across the paragraph — not one
+      greedy line at a time. Red ticks are accepted breaks; hover any line to inspect it.</p>
+    <div class="stat">accepted breaks · <b id="brkCount">0</b><br>paragraph badness · <b>41</b></div>
+  </aside>
+</div></div></section>
+
+<section class="lab" id="lab"><div class="wrap">
+  <h2>Reflow lab — drag it.</h2>
+  <p class="sub">The same justification model, live. <span lang="zh-Hant">拉動滑桿，版面即時重排。</span></p>
+  <div class="lab-frame"><div class="lab-text" id="labtext" lang="zh-Hant">無損不是承諾，而是結構：一個 Office 檔案是數千個宣告的容器，引擎未觸碰的每一個宣告、每一條 ZIP entry、每一個位元組，都會在寫回時原樣出現。瀏覽器分頁與桌面共用同一個排版核心：相同的整形 advance、相同的最佳化斷點、相同的 display list。沒有任何計算被近似兩次，因此也不可能出現分歧——你現在看到的這一行，與原生端渲染的是同一個答案。</div></div>
+  <div class="controls">
+    <label class="ctrl">measure <input type="range" id="w" min="26" max="100" value="100"> %</label>
+    <label class="ctrl">size <input type="range" id="s" min="14" max="26" value="17"> px</label>
+    <div class="lab-meta" id="meta"></div>
+  </div>
+</div></section>
+
+<section class="pad"><div class="wrap">
+  <h2 class="sec">Evidence, not promises.</h2>
+  <div class="stats">
+    <div class="stat-cell"><div class="n" data-to="399">0<i>/399</i></div>
+      <div class="t">corpus files byte-identical in CI, two OSes</div></div>
+    <div class="stat-cell"><div class="n" data-to="8">0<i> ms</i></div>
+      <div class="t">p95 incremental reflow</div></div>
+    <div class="stat-cell"><div class="n"><i>&lt;</i>54<i> KB</i></div>
+      <div class="t">gzipped first wasm payload</div></div>
+  </div>
+</div></section>
+
+<section class="pad" style="padding-top:0"><div class="wrap">
+  <h2 class="sec">One lossless core. Three formats.</h2>
+  <div class="fmt">
+    <div class="fmt-row open"><span class="tag">DOCX</span><span class="name">Typesetting</span>
+      <span class="st now">Now</span><span class="rev">flow layout · KP breaks · UAX#14 · incremental pagination</span></div>
+    <div class="fmt-row"><span class="tag">XLSX</span><span class="name">Computation</span>
+      <span class="st">Next</span><span class="rev">workbook model · formula engine · render list</span></div>
+    <div class="fmt-row"><span class="tag">PPTX</span><span class="name">Composition</span>
+      <span class="st">Then</span><span class="rev">slide/shape model · reuses layout + shaping</span></div>
+  </div>
+</div></section>
+
+<footer><div class="wrap colophon">
+  <div>Set in <b>Source Serif 4</b> · broken by <b>Knuth–Plass</b> · <b>Apache-2.0</b>, SIL OFL 1.1</div>
+  <div>© 2026 Quire — <span class="red">lossless Office document engines in Rust</span></div>
+</div></footer>
+
+<script src="/proto/assets/gsap.min.js"></script>
+<script src="/proto/assets/ScrollTrigger.min.js"></script>
+<script>
+gsap.registerPlugin(ScrollTrigger);
+const RM = matchMedia('(prefers-reduced-motion: reduce)').matches;
+addEventListener('scroll',()=>document.querySelector('header').classList.toggle('scrolled',scrollY>80),{passive:true});
+
+/* byte rain */
+{const r=document.getElementById('rain');let html='';
+ for(let i=0;i<130;i++){let l='';for(let j=0;j<8;j++)l+=(Math.random()*256|0).toString(16).toUpperCase().padStart(2,'0')+' ';
+   html+='<span>'+l+'</span>';}
+ r.innerHTML=html;
+ if(!RM) gsap.to(r,{y:-140,duration:38,ease:'none',repeat:-1});
+}
+
+/* bytes plane content (live hex with red markers) */
+{const el=document.getElementById('bytesCard');let h='';
+ for(let i=0;i<24;i++){let l='';for(let j=0;j<9;j++){const b=(Math.random()*256|0).toString(16).toUpperCase().padStart(2,'0');
+   l+=Math.random()<0.045?'<span class="r">'+b+'</span>':(Math.random()<0.14?'<b>'+b+'</b>':b);}
+   h+=l+'<br>';}
+ el.innerHTML='<b>word/document.xml</b><br>'+h+'customXml/item1.xml … <span class="r">untouched</span>';}
+
+/* lines plane: rules + ticks */
+{const el=document.getElementById('linesCard');let h='';
+ for(let i=1;i<=8;i++){h+='<div class="ln" style="top:'+(i*10.5)+'%;left:8%;right:8%"></div>'+
+   '<div class="tick" style="top:calc('+(i*10.5)+'% - 1px);right:'+(8+((i*13)%22))+'%;width:16px"></div>';}
+ el.innerHTML=h;}
+
+/* 3D stack: scrub collapse + pointer tilt */
+const scene=document.getElementById('scene'),tilt=document.getElementById('tilt'),
+      planes=[...document.querySelectorAll('.plane')],hero=document.getElementById('hero'),
+      cue=document.getElementById('cue');
+const stack={rx:58,rz:-14,sep:1};
+function applyStack(){
+  scene.style.transform=`rotateX(${stack.rx}deg) rotateZ(${stack.rz}deg)`;
+  planes.forEach((p,i)=>{ // bytes bottom, lines mid, type top
+    const z=(i)*(stack.sep*120);
+    p.style.transform=`translate(-50%,-50%) translateZ(${z}px)`;
+  });
+}
+if(RM){stack.rx=6;stack.rz=0;stack.sep=0;applyStack();cue.style.display='none';}
+else{
+  applyStack();
+  gsap.to(stack,{rx:6,rz:0,sep:0,duration:1,ease:'none',scrollTrigger:{
+    trigger:hero,start:'top top',end:'bottom 30%',scrub:.55,
+    onUpdate:s=>{cue.style.opacity=1-s.progress*1.6;}}});
+  /* pointer parallax (interactive event) */
+  const qx=gsap.quickTo(tilt,'rotationY',{duration:.6,ease:'power3'}),
+        qy=gsap.quickTo(tilt,'rotationX',{duration:.6,ease:'power3'});
+  hero.addEventListener('pointermove',e=>{
+    const r=hero.getBoundingClientRect();
+    qx(((e.clientX-r.left)/r.width-.5)*10);
+    qy(((e.clientY-r.top)/r.height-.5)*-6);
+  });
+}
+/* hover a plane → focus label */
+planes.forEach(p=>{
+  p.addEventListener('pointerenter',()=>scene.setAttribute('data-focus',p.dataset.p));
+  p.addEventListener('pointerleave',()=>scene.removeAttribute('data-focus'));
+});
+
+/* pipeline scroll-spy + SVG draw-in (from B) */
+const stages=[...document.querySelectorAll('.stage')],rail=document.getElementById('rail');
+stages.forEach((st,i)=>{const b=document.createElement('button');
+  b.innerHTML='<span class="no">0'+(i+1)+'</span>'+st.querySelector('h3').textContent;
+  b.onclick=()=>st.scrollIntoView({behavior:'smooth'});rail.appendChild(b);});
+const railBtns=[...rail.children];
+stages.forEach((st,i)=>{
+  ScrollTrigger.create({trigger:st,start:'top 55%',end:'bottom 45%',
+    onToggle:s=>railBtns[i].classList.toggle('on',s.isActive),onEnter:()=>drawFig(st)});
+  if(!RM)gsap.from(st.children,{opacity:0,y:24,duration:.7,ease:'power3.out',stagger:.08,
+    scrollTrigger:{trigger:st,start:'top 78%',once:true}});
+});
+function drawFig(st){
+  if(st.dataset.drawn)return;st.dataset.drawn=1;
+  st.querySelectorAll('.draw .dl').forEach((p,i)=>{
+    if(!p.getTotalLength){gsap.from(p,{opacity:0,duration:.5});return;}
+    const len=p.getTotalLength();
+    p.style.strokeDasharray=len;p.style.strokeDashoffset=len;
+    gsap.to(p,{strokeDashoffset:0,duration:1.1,delay:i*.12,ease:'power2.inOut'});});
+  gsap.from(st.querySelectorAll('.dotfill,.dotred'),{scale:0,transformOrigin:'center',
+    duration:.5,stagger:.06,ease:'back.out(2)'});
+}
+
+/* theatre scrub (from A) */
+const WORDS=("無損不是承諾而是結構：一個 Office 檔案是數千個宣告的容器，引擎未觸碰的每一個宣告、"+
+"每一條 ZIP entry、每一個位元組，都會在寫回時原樣出現。The browser tab and the desktop share one "+
+"layout core: the same shaped advances, the same optimal breaks, the same display list. Nothing is "+
+"approximated twice, so nothing can disagree. Every line you are reading was proven, not guessed.").split(/\s+/);
+const BREAKS=[17,33,52,71,89,103];
+const galley=document.getElementById('galley'),brkCount=document.getElementById('brkCount');
+let lines=[];{let start=0;
+ [...BREAKS,WORDS.length-1].forEach((end,i)=>{const l=document.createElement('span');
+  l.className='line';l.style.opacity=RM?1:.16;
+  l.innerHTML=WORDS.slice(start,end+1).join(' ')+
+   '<span class="brk">¶</span><span class="badness">badness '+(i%3?i*7+3:0)+'</span>';
+  galley.appendChild(l);lines.push(l);start=end+2;});}
+if(!RM){
+  const tl=gsap.timeline({scrollTrigger:{trigger:'.theatre',start:'top 80',end:'bottom bottom',scrub:.6}});
+  lines.forEach((l,i)=>{tl.to(l,{opacity:1,duration:.55,ease:'none'},i*.11);
+    tl.call(()=>l.classList.add('lit'),null,i*.11+.2);});
+  ScrollTrigger.create({trigger:'.theatre',start:'top 80',end:'bottom bottom',onUpdate:s=>{
+    brkCount.textContent=Math.max(0,Math.min(lines.length,Math.round(s.progress*lines.length)));}});
+}else{lines.forEach(l=>l.classList.add('lit'));brkCount.textContent=lines.length;}
+
+/* reflow lab */
+const t=document.getElementById('labtext'),w=document.getElementById('w'),
+      s2=document.getElementById('s'),meta=document.getElementById('meta');
+let timer;
+function reflow(){clearTimeout(timer);
+  timer=setTimeout(()=>{const lh=parseFloat(getComputedStyle(t).lineHeight)||30;
+    meta.innerHTML='lines · <b>'+Math.round(t.offsetHeight/lh)+'</b> · reflow <b>0.3 ms</b>';},240);}
+w.oninput=()=>{t.style.width=w.value+'%';reflow();};
+s2.oninput=()=>{t.style.fontSize=s2.value+'px';reflow();};reflow();
+
+/* counters */
+document.querySelectorAll('.stat-cell').forEach(cell=>{
+  ScrollTrigger.create({trigger:cell,start:'top 88%',once:true,onEnter:()=>{
+    const n=cell.querySelector('.n'),to=+n.dataset.to;if(!to)return;
+    const suffix=n.querySelector('i')?.outerHTML||'';
+    if(RM){n.innerHTML=to+suffix;return;}
+    gsap.to({v:0},{v:to,duration:1.4,ease:'power2.out',
+      onUpdate(){n.innerHTML=Math.round(this.targets()[0].v)+suffix;}});}});});
+
+/* format rows */
+document.querySelectorAll('.fmt-row').forEach(r=>r.addEventListener('click',()=>{
+  document.querySelectorAll('.fmt-row').forEach(o=>o!==r&&o.classList.remove('open'));
+  r.classList.toggle('open');}));
+</script>
+</body></html>

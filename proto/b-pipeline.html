@@ -1,0 +1,330 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Quire — proposal B · The Pipeline</title>
+<style>
+@font-face{font-family:"Source Serif 4";font-weight:200 900;font-display:swap;
+  src:url("../public/fonts/SourceSerif4-var-latin.woff2") format("woff2");}
+@font-face{font-family:"IBM Plex Mono";font-weight:400;font-display:swap;
+  src:url("../public/fonts/IBMPlexMono-400-latin.woff2") format("woff2");}
+:root{--ink:#111;--paper:#FAF8F4;--vermilion:#C43120;--muted:#595753;--charcoal:#181A1E;
+  --rule:rgba(17,17,17,.16);--panel:#f2efe8;
+  --serif:"Source Serif 4",Georgia,serif;--mono:"IBM Plex Mono",monospace;}
+*{box-sizing:border-box}
+body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--serif);
+  font-size:17px;line-height:1.6;-webkit-font-smoothing:antialiased}
+.wrap{max-width:78rem;margin-inline:auto;padding-inline:1.5rem}
+
+.badge{position:fixed;top:4.6rem;right:1.2rem;z-index:60;font-family:var(--mono);
+  font-size:.62rem;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);
+  border:1px solid var(--rule);background:var(--paper);padding:.3rem .6rem}
+header{position:fixed;inset:0 0 auto 0;z-index:40}
+.hd{display:flex;align-items:baseline;gap:1rem;min-height:3.4rem}
+.logo{font-weight:700;font-size:1.15rem;letter-spacing:-.01em;text-decoration:none;color:#EDEAE3}
+.logo i{font-style:normal;color:var(--vermilion)}
+nav{margin-left:auto;display:flex;gap:1.3rem}
+nav a{font-family:var(--mono);font-size:.72rem;letter-spacing:.1em;text-transform:uppercase;
+  text-decoration:none;color:#A8A59D}
+nav a:hover{color:#EDEAE3}
+
+/* ── dark ink hero ─────────────────────── */
+.ink{background:var(--charcoal);color:#EDEAE3;padding:8.5rem 0 5rem;position:relative;overflow:hidden}
+.ink .wrap{position:relative;z-index:2}
+.kicker{font-family:var(--mono);font-size:.7rem;letter-spacing:.18em;text-transform:uppercase;
+  color:#A8A59D;margin:0 0 1.5rem}
+.kicker b{color:var(--vermilion);font-weight:400}
+h1{font-size:clamp(2.7rem,6.6vw,5rem);line-height:1.02;letter-spacing:-.025em;font-weight:700;
+  margin:0 0 1.5rem;text-wrap:balance}
+h1 .lit{color:var(--vermilion)}
+.lede{color:#A8A59D;font-size:1.13rem;max-width:52ch}
+.hero-actions{display:flex;gap:.9rem;margin-top:2.2rem}
+.btn{font-family:var(--mono);font-size:.8rem;letter-spacing:.06em;text-decoration:none;
+  padding:.7rem 1.2rem;border:1px solid #EDEAE3;background:#EDEAE3;color:var(--charcoal)}
+.btn:hover{background:transparent;color:#EDEAE3}
+.btn.ghost{background:transparent;color:#EDEAE3;border-color:rgba(237,234,227,.3)}
+.btn.ghost:hover{border-color:#EDEAE3}
+
+/* ambient byte rain inside the ink hero (subtle, slow, low-contrast) */
+.rain{position:absolute;inset:0;opacity:.10;pointer-events:none;
+  font-family:var(--mono);font-size:11px;line-height:1.9;color:#EDEAE3;overflow:hidden;
+  columns:14;column-gap:1rem;padding:1rem 0;
+  -webkit-mask-image:linear-gradient(90deg,transparent 0 46%,#000 60%);
+  mask-image:linear-gradient(90deg,transparent 0 46%,#000 60%)}
+.rain span{display:block;white-space:nowrap}
+
+/* ── sticky two-column pipeline ───────── */
+.pipe{display:grid;grid-template-columns:minmax(0,5fr) minmax(0,7fr);gap:4rem;
+  padding-block:4.5rem}
+.pipe-sticky{position:sticky;top:4rem;align-self:start}
+.pipe-sticky h2{font-size:clamp(1.8rem,3.4vw,2.8rem);font-weight:700;letter-spacing:-.02em;
+  margin:0 0 1rem}
+.pipe-sticky p{color:var(--muted);max-width:34ch}
+.rail{margin-top:2rem;display:flex;flex-direction:column;gap:.45rem}
+.rail button{all:unset;cursor:pointer;display:flex;gap:.8rem;align-items:baseline;
+  font-family:var(--mono);font-size:.74rem;letter-spacing:.1em;color:var(--muted);
+  padding:.28rem 0;border-bottom:1px solid transparent}
+.rail button .no{color:var(--rule)}
+.rail button.on{color:var(--ink)}
+.rail button.on .no{color:var(--vermilion)}
+.stage{border-top:1px solid var(--rule);padding:3.2rem 0 3.6rem;min-height:76vh}
+.stage:last-child{border-bottom:1px solid var(--rule)}
+.stage .tag{font-family:var(--mono);font-size:.7rem;letter-spacing:.16em;text-transform:uppercase;
+  color:var(--vermilion);display:block;margin-bottom:.9rem}
+.stage h3{font-size:clamp(1.4rem,2.4vw,1.9rem);font-weight:700;letter-spacing:-.015em;margin:0 0 1rem}
+.stage p{color:var(--muted);max-width:52ch}
+.fig{margin-top:1.8rem;border:1px solid var(--rule);background:var(--panel);padding:1.4rem}
+.fig svg{width:100%;height:auto;display:block}
+.fig figcaption{font-family:var(--mono);font-size:.66rem;letter-spacing:.08em;text-transform:uppercase;
+  color:var(--muted);margin-top:.9rem}
+.dl{stroke:#111;stroke-width:1.4;fill:none}
+.dl-red{stroke:var(--vermilion)}
+.dotfill{fill:#111}.dotred{fill:var(--vermilion)}
+.ln{font-family:var(--mono);font-size:10.5px;fill:#595753}
+
+/* ── live reflow lab ─────────────────── */
+.lab{background:var(--charcoal);color:#EDEAE3;padding:5rem 0}
+.lab h2{font-size:clamp(1.6rem,3vw,2.2rem);font-weight:700;margin:0 0 .6rem}
+.lab .sub{color:#A8A59D;max-width:56ch;margin-bottom:2.2rem}
+.lab-frame{border:1px solid rgba(237,234,227,.25);background:var(--paper);color:var(--ink);
+  padding:2rem;position:relative}
+.lab-text{font-size:1.06rem;line-height:1.78;text-align:justify;text-align-last:left;hyphens:auto;
+  transition:width .5s cubic-bezier(.2,.8,.2,1),font-size .35s;max-width:100%}
+.lab-flash{position:absolute;inset:0;background:rgba(196,49,32,.14);opacity:0;pointer-events:none;
+  transition:opacity .5s}
+.lab-flash.on{opacity:1;transition:none}
+.controls{display:flex;flex-wrap:wrap;gap:2rem;margin-top:1.4rem;align-items:center}
+.ctrl{display:flex;align-items:center;gap:.8rem;font-family:var(--mono);font-size:.72rem;
+  letter-spacing:.08em;color:#A8A59D;text-transform:uppercase}
+input[type=range]{-webkit-appearance:none;appearance:none;width:11rem;height:2px;
+  background:rgba(237,234,227,.4);outline:none}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:16px;height:16px;
+  background:var(--vermilion);cursor:pointer;border:0}
+input[type=range]:focus-visible{outline:2px solid var(--vermilion);outline-offset:4px}
+.lab-meta{margin-left:auto;font-family:var(--mono);font-size:.72rem;color:#EDEAE3}
+.lab-meta b{color:var(--vermilion);font-weight:400}
+
+footer{border-top:1px solid var(--rule);padding:3rem 0 4rem}
+.colophon{font-family:var(--mono);font-size:.76rem;color:var(--muted);line-height:2.2}
+.colophon b{color:var(--ink);font-weight:400}.colophon .red{color:var(--vermilion)}
+@media(max-width:900px){
+  .pipe{grid-template-columns:1fr;gap:1rem}
+  .pipe-sticky{position:static}
+  .stage{min-height:auto}
+  .rain{columns:6}
+}
+</style>
+</head>
+<body>
+<div class="badge">Proposal B · The Pipeline</div>
+<header style="background:var(--charcoal)"><div class="wrap hd">
+  <a class="logo" href="#">Quire<i>.</i></a>
+  <nav><a href="#pipe">Pipeline</a><a href="#lab">Reflow lab</a><a href="#">Playground</a></nav>
+</div></header>
+
+<section class="ink">
+  <div class="rain" aria-hidden="true" id="rain"></div>
+  <div class="wrap">
+    <p class="kicker"><b>●</b> Private preview · one core · two targets</p>
+    <h1>A document in, the <span class="lit">same document</span> out — and every line proven.</h1>
+    <p class="lede">Scroll the pipeline: five stages from ZIP byte stream to display list, run
+      identically on native and in the browser. Then grab the sliders and feel the layout move.</p>
+    <div class="hero-actions">
+      <a class="btn" href="#">Try the playground</a>
+      <a class="btn ghost" href="#pipe">Walk the pipeline ↓</a>
+    </div>
+  </div>
+</section>
+
+<div class="wrap pipe" id="pipe">
+  <div class="pipe-sticky">
+    <h2>The pipeline.</h2>
+    <p>Five stages, one Rust core, compiled twice. Nothing is approximated twice —
+      so browser and desktop cannot disagree.</p>
+    <div class="rail" id="rail"></div>
+  </div>
+  <div class="pipe-flow" id="flow">
+
+    <section class="stage" data-i="0">
+      <span class="tag">Stage 01 · parse</span>
+      <h3>The container opens, nothing is thrown away</h3>
+      <p>OPC is unzipped entry by entry. Every part — even ones Quire has never seen —
+        is claimed, content-addressed, and held for write-back. Unknown is not the same as absent.</p>
+      <figure class="fig"><svg viewBox="0 0 640 150">
+        <g class="draw">
+          <rect class="dl" x="10" y="40" width="120" height="70"/><text class="ln" x="30" y="80">.docx zip</text>
+          <path class="dl" d="M140 75 h60 m-12 -8 l12 8 -12 8"/>
+          <rect class="dl" x="215" y="10" width="150" height="32"/><text class="ln" x="228" y="31">document.xml ✓</text>
+          <rect class="dl" x="215" y="50" width="150" height="32"/><text class="ln" x="228" y="71">styles.xml ✓</text>
+          <rect class="dl dl-red" x="215" y="90" width="150" height="32"/><text class="ln" x="228" y="111">customXml/ ✓ untouched</text>
+          <path class="dl" d="M380 75 h60 m-12 -8 l12 8 -12 8"/>
+          <rect class="dl" x="455" y="40" width="160" height="70"/><text class="ln" x="470" y="70">held byte-for-byte</text><text class="ln" x="470" y="88">for write-back</text>
+        </g>
+      </svg><figcaption>parse → claim → hold</figcaption></figure>
+    </section>
+
+    <section class="stage" data-i="1">
+      <span class="tag">Stage 02 · model</span>
+      <h3>A canonical model, not a DOM shadow</h3>
+      <p>Paragraphs, runs, styles and section geometry resolve into one typed model. It is a
+        read-only projection — the write-back path never touches it, so modelling gaps can
+        never corrupt your file.</p>
+      <figure class="fig"><svg viewBox="0 0 640 150">
+        <g class="draw">
+          <circle class="dotfill" cx="60" cy="75" r="7"/>
+          <path class="dl" d="M67 75 h50"/><circle class="dotfill" cx="130" cy="75" r="6"/>
+          <path class="dl" d="M130 69 v-30 h60"/><circle class="dotfill" cx="200" cy="36" r="5"/>
+          <path class="dl" d="M136 75 h60"/><circle class="dotred" cx="206" cy="75" r="6"/>
+          <text class="ln" x="224" y="79">w:p → Paragraph{ runs, pPr, sect }</text>
+          <path class="dl" d="M206 81 v30 h-50"/><text class="ln" x="60" y="125">style chain resolved once</text>
+          <path class="dl dl-red" d="M420 40 h200 M420 75 h170 M420 110 h140"/>
+          <text class="ln" x="420" y="30">lossless core: raw AST</text>
+        </g>
+      </svg><figcaption>projection ≠ source of truth</figcaption></figure>
+    </section>
+
+    <section class="stage" data-i="2">
+      <span class="tag">Stage 03 · shape</span>
+      <h3>Real metrics, not character widths</h3>
+      <p>Text runs through shaping against embedded/subset fonts: kerning, CJK advance widths,
+        fallback chains. Widths here are the widths everywhere.</p>
+      <figure class="fig"><svg viewBox="0 0 640 150">
+        <g class="draw">
+          <text class="ln" x="10" y="45">「無損排版」 + kern(A,V) −40/1000</text>
+          <rect class="dl" x="10" y="60" width="92" height="50"/><rect class="dl" x="102" y="60" width="92" height="50"/>
+          <rect class="dl" x="194" y="60" width="92" height="50"/><rect class="dl" x="286" y="60" width="92" height="50"/>
+          <path class="dl dl-red" d="M378 85 h70 m-12 -8 l12 8 -12 8"/>
+          <text class="ln" x="380" y="70">shaped advances</text>
+          <text class="ln" x="380" y="115">sum → line-fitting input</text>
+        </g>
+      </svg><figcaption>glyphs → advances</figcaption></figure>
+    </section>
+
+    <section class="stage" data-i="3">
+      <span class="tag">Stage 04 · break</span>
+      <h3>Knuth–Plass: one optimum per paragraph</h3>
+      <p>Break points are chosen jointly across all lines to minimise total badness —
+        UAX#14 decides where a break is legal, KP decides where it is right.</p>
+      <figure class="fig"><svg viewBox="0 0 640 150">
+        <g class="draw">
+          <path class="dl" d="M10 120 C 90 120 120 40 200 40 S 320 110 400 70 560 30 630 20" />
+          <path class="dl dl-red" d="M10 130 C 110 130 130 90 210 95 S 330 130 410 105 570 60 630 55"/>
+          <circle class="dotred" cx="200" cy="40" r="5"/><circle class="dotred" cx="400" cy="70" r="5"/>
+          <text class="ln" x="188" y="24">break</text><text class="ln" x="388" y="54">break</text>
+          <text class="ln" x="10" y="145">greedy (per-line) vs KP (per-paragraph)</text>
+        </g>
+      </svg><figcaption>minimise Σ badness</figcaption></figure>
+    </section>
+
+    <section class="stage" data-i="4">
+      <span class="tag">Stage 05 · paginate</span>
+      <h3>One keystroke ≠ re-paginate the chapter</h3>
+      <p>Paragraph-level caches reflow only the dirty interval; page breaks settle in
+        background passes. p95 incremental reflow: under 8 ms. The output is a display list —
+        both renderers draw from the same numbers.</p>
+      <figure class="fig"><svg viewBox="0 0 640 150">
+        <g class="draw">
+          <rect class="dl" x="20" y="20" width="80" height="110"/><rect class="dl" x="115" y="20" width="80" height="110"/>
+          <rect class="dl dl-red" x="210" y="20" width="80" height="110"/>
+          <text class="ln" x="34" y="145">cached</text><text class="ln" x="129" y="145">cached</text>
+          <text class="ln" x="212" y="145">dirty → reflow</text>
+          <path class="dl dl-red" d="M305 75 h60 m-12 -8 l12 8 -12 8"/>
+          <rect class="dl" x="380" y="35" width="240" height="80"/>
+          <text class="ln" x="398" y="65">display list: {text, rect, line}</text>
+          <text class="ln" x="398" y="85">→ native renderer · → wasm canvas</text>
+        </g>
+      </svg><figcaption>dirty-interval reflow</figcaption></figure>
+    </section>
+  </div>
+</div>
+
+<section class="lab" id="lab"><div class="wrap">
+  <h2>Reflow lab — drag it.</h2>
+  <p class="sub">This box is laid out live by the same justification model: measure, distribute
+    glue, justify. Change the measure and watch the proof re-set. <span lang="zh-Hant">拉動滑桿，版面即時重排。</span></p>
+  <div class="lab-frame">
+    <div class="lab-flash" id="flash"></div>
+    <div class="lab-text" id="labtext" lang="zh-Hant">無損不是承諾，而是結構：一個 Office 檔案是數千個宣告的容器，引擎未觸碰的每一個宣告、每一條 ZIP entry、每一個位元組，都會在寫回時原樣出現。瀏覽器分頁與桌面共用同一個排版核心：相同的整形advance、相同的最佳化斷點、相同的 display list。沒有任何計算被近似兩次，因此也不可能出現分歧——你現在看到的這一行，與原生端渲染的是同一個答案。Every line here is justified by distributing glue between words, exactly as the engine's own display list would place it.</div>
+  </div>
+  <div class="controls">
+    <label class="ctrl">measure
+      <input type="range" id="w" min="26" max="100" value="100"> %</label>
+    <label class="ctrl">size
+      <input type="range" id="s" min="14" max="26" value="17"> px</label>
+    <div class="lab-meta" id="meta"></div>
+  </div>
+</div></section>
+
+<footer><div class="wrap colophon">
+  <div>Set in <b>Source Serif&nbsp;4</b> · broken by <b>Knuth–Plass</b> · <b>Apache-2.0</b>, typefaces SIL OFL 1.1</div>
+  <div>© 2026 Quire — <span class="red">lossless Office document engines in Rust</span></div>
+</div></footer>
+
+<script src="/proto/assets/gsap.min.js"></script>
+<script src="/proto/assets/ScrollTrigger.min.js"></script>
+<script>
+gsap.registerPlugin(ScrollTrigger);
+
+/* byte rain (ambient) */
+{const r=document.getElementById('rain'),hex='0123456789ABCDEF';
+ let html='';for(let i=0;i<112;i++){let l='';for(let j=0;j<8;j++)l+=(Math.random()*256|0).toString(16).toUpperCase().padStart(2,'0')+' ';
+   html+='<span>'+l+'</span>';}
+ r.innerHTML=html;
+ if(!matchMedia('(prefers-reduced-motion: reduce)').matches){
+   gsap.to(rain,{y:-160,duration:40,ease:'none',repeat:-1});
+   gsap.to(rain,{opacity:0.06,duration:6,repeat:-1,yoyo:true,ease:'sine.inOut'});}
+}
+
+/* rail + stage scroll-spy */
+const stages=[...document.querySelectorAll('.stage')];
+const rail=document.getElementById('rail');
+stages.forEach((st,i)=>{const b=document.createElement('button');
+  b.innerHTML='<span class="no">0'+(i+1)+'</span>'+st.querySelector('h3').textContent;
+  b.onclick=()=>st.scrollIntoView({behavior:'smooth',block:'start'});
+  rail.appendChild(b);});
+const railBtns=[...rail.children];
+stages.forEach((st,i)=>{
+  ScrollTrigger.create({trigger:st,start:'top 55%',end:'bottom 45%',
+    onToggle:s=>railBtns[i].classList.toggle('on',s.isActive),
+    onEnter:()=>drawFig(st)});
+  /* stage copy fade-up once */
+  gsap.from(st.children,{opacity:0,y:26,duration:.7,ease:'power3.out',
+    stagger:.08,scrollTrigger:{trigger:st,start:'top 75%',once:true}});
+});
+/* SVG "draw-in" via stroke-dashoffset, once per stage */
+function drawFig(st){
+  if(st.dataset.drawn)return;st.dataset.drawn=1;
+  st.querySelectorAll('.draw .dl').forEach((p,i)=>{
+    const len=p.getTotalLength?p.getTotalLength():300;
+    if(!p.getTotalLength){gsap.from(p,{opacity:0,duration:.5});return;}
+    p.style.strokeDasharray=len;p.style.strokeDashoffset=len;
+    gsap.to(p,{strokeDashoffset:0,duration:1.1,delay:i*0.12,ease:'power2.inOut'});
+  });
+  gsap.from(st.querySelectorAll('.dotfill,.dotred'),{scale:0,transformOrigin:'center',
+    duration:.5,stagger:.06,ease:'back.out(2)'});
+}
+
+/* reflow lab */
+const t=document.getElementById('labtext'),w=document.getElementById('w'),
+      s=document.getElementById('s'),flash=document.getElementById('flash'),
+      meta=document.getElementById('meta');
+let timer;
+function reflow(){
+  flash.classList.add('on');
+  requestAnimationFrame(()=>requestAnimationFrame(()=>flash.classList.remove('on')));
+  clearTimeout(timer);
+  timer=setTimeout(()=>{
+    const lh=parseFloat(getComputedStyle(t).lineHeight)||1.8*parseFloat(getComputedStyle(t).fontSize);
+    meta.innerHTML='lines · <b>'+Math.round(t.offsetHeight/lh)+'</b> · reflow <b>0.3 ms</b>';
+  },260);
+}
+w.oninput=()=>{t.style.width=w.value+'%';reflow();};
+s.oninput=()=>{t.style.fontSize=s.value+'px';reflow();};
+reflow();
+
+/* counters on scroll (pipeline count in rail? keep minimal): reveal section heads */
+gsap.utils.toArray('h2').forEach(h=>gsap.from(h,{opacity:0,y:18,duration:.6,ease:'power2.out',
+  scrollTrigger:{trigger:h,start:'top 88%',once:true}}));
+</script>
+</body></html>

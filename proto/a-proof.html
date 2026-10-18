@@ -1,0 +1,290 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Quire — proposal A · The Proof</title>
+<style>
+@font-face{font-family:"Source Serif 4";font-weight:200 900;font-display:swap;
+  src:url("../public/fonts/SourceSerif4-var-latin.woff2") format("woff2");}
+@font-face{font-family:"IBM Plex Mono";font-weight:400;font-display:swap;
+  src:url("../public/fonts/IBMPlexMono-400-latin.woff2") format("woff2");}
+:root{--ink:#111;--paper:#FAF8F4;--vermilion:#C43120;--muted:#595753;
+  --rule:rgba(17,17,17,.16);--panel:#f2efe8;
+  --serif:"Source Serif 4",Georgia,serif;--mono:"IBM Plex Mono",monospace;}
+*{box-sizing:border-box}
+body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--serif);
+  font-size:17px;line-height:1.6;-webkit-font-smoothing:antialiased}
+a{color:inherit}
+.wrap{max-width:76rem;margin-inline:auto;padding-inline:1.5rem}
+
+/* ── header ─────────────────────────────── */
+header{position:fixed;inset:0 0 auto 0;z-index:40;background:rgba(250,248,244,.92);
+  border-bottom:1px solid transparent;transition:border-color .3s}
+header.scrolled{border-color:var(--rule)}
+.hd{display:flex;align-items:baseline;gap:1rem;min-height:3.4rem}
+.logo{font-weight:700;font-size:1.15rem;letter-spacing:-.01em;text-decoration:none}
+.logo i{font-style:normal;color:var(--vermilion)}
+nav{margin-left:auto;display:flex;gap:1.3rem}
+nav a{font-family:var(--mono);font-size:.72rem;letter-spacing:.1em;text-transform:uppercase;
+  text-decoration:none;color:var(--muted)}
+nav a:hover{color:var(--ink)}
+
+/* ── hero: asymmetric editorial spread ─── */
+.hero{padding:9.5rem 0 4.5rem}
+.hero-grid{display:grid;grid-template-columns:minmax(0,7fr) minmax(0,4fr);
+  gap:3rem;align-items:end}
+.eyebrow{font-family:var(--mono);font-size:.7rem;letter-spacing:.18em;text-transform:uppercase;
+  color:var(--muted);margin:0 0 1.4rem}
+.eyebrow b{color:var(--vermilion);font-weight:400}
+h1{font-size:clamp(2.8rem,7vw,5.4rem);line-height:.98;letter-spacing:-.025em;
+  font-weight:700;margin:0 0 1.6rem;text-wrap:balance}
+h1 .slash{color:var(--vermilion);font-weight:400}
+h1 .under{position:relative;white-space:nowrap}
+h1 .under::after{content:"";position:absolute;left:0;right:0;bottom:.04em;height:.075em;
+  background:var(--vermilion);transform:scaleX(0);transform-origin:left;
+  animation:wipe 1s .35s cubic-bezier(.2,.8,.2,1) forwards}
+@keyframes wipe{to{transform:scaleX(1)}}
+.lede{color:var(--muted);font-size:1.13rem;max-width:46ch}
+.hero-side{border-left:1px solid var(--rule);padding-left:1.6rem;font-family:var(--mono);
+  font-size:.74rem;color:var(--muted);line-height:2}
+.hero-side b{color:var(--ink);font-weight:400}
+.hero-side .ok{color:var(--vermilion)}
+.hero-actions{display:flex;gap:.9rem;margin-top:2.2rem}
+.btn{font-family:var(--mono);font-size:.8rem;letter-spacing:.06em;text-decoration:none;
+  padding:.7rem 1.2rem;border:1px solid var(--ink);background:var(--ink);color:var(--paper)}
+.btn:hover{background:transparent;color:var(--ink)}
+.btn.ghost{background:transparent;color:var(--ink);border-color:var(--rule)}
+.btn.ghost:hover{border-color:var(--ink)}
+
+/* ── the line-break theatre (scroll-scrubbed) ─────────────── */
+.theatre{border-block:1px solid var(--rule);background:var(--panel);
+  min-height:260vh;position:relative}
+.theatre-sticky{position:sticky;top:3.4rem;height:calc(100vh - 3.4rem);
+  display:flex;align-items:center}
+.theatre-inner{display:grid;grid-template-columns:minmax(0,7fr) minmax(0,4fr);gap:3rem;
+  padding-block:4.5rem}
+.kicker{font-family:var(--mono);font-size:.7rem;letter-spacing:.16em;text-transform:uppercase;
+  color:var(--muted);margin:0 0 1rem}
+.kicker em{color:var(--vermilion);font-style:normal}
+.spec-h{font-size:1.3rem;font-weight:600;margin:0 0 1.6rem}
+.galley{font-size:1.06rem;line-height:1.8}
+.galley .raw{color:var(--muted)}
+.galley .word{display:inline-block;padding:0 .12em;border-radius:0}
+.galley .word.hot{background:rgba(196,49,32,.14)}
+.brk{display:none;color:var(--vermilion);font-family:var(--mono);font-size:.7em;
+  vertical-align:.45em;margin-left:.3em}
+.line{display:block;text-align:justify;text-align-last:justify;hyphens:auto}
+.line.lit .brk{display:inline}
+.line.lit .badness{display:inline-block}
+.line .badness{display:none;font-family:var(--mono);font-size:.62rem;color:var(--vermilion);
+  margin-left:.5em;white-space:nowrap}
+.line{position:relative;cursor:crosshair}
+.line:hover{background:rgba(196,49,32,.06)}
+.proof-side p{font-size:.95rem;color:var(--muted)}
+.proof-side .stat{font-family:var(--mono);font-size:.8rem;color:var(--ink);
+  border-top:1px solid var(--rule);padding-top:.8rem;margin-top:1.2rem}
+.proof-side .stat b{color:var(--vermilion);font-weight:400}
+.cursor-hint{position:fixed;left:1.5rem;bottom:1.2rem;font-family:var(--mono);font-size:.66rem;
+  color:var(--muted);opacity:0;transition:opacity .3s;pointer-events:none;z-index:50}
+.cursor-hint.show{opacity:1}
+
+/* ── ledger stats ─────────────────────── */
+.stats{display:flex;gap:0;border-bottom:1px solid var(--rule)}
+.stat-cell{flex:1;padding:2.6rem 1.8rem 2.4rem 0;border-left:1px solid var(--rule);
+  padding-left:1.8rem;position:relative}
+.stat-cell:first-child{border-left:0;padding-left:0}
+.stat-cell .n{font-size:clamp(2.4rem,4.6vw,4rem);font-weight:700;line-height:1;
+  letter-spacing:-.02em;font-variant-numeric:tabular-nums}
+.stat-cell .n i{font-style:normal;color:var(--vermilion)}
+.stat-cell .t{font-family:var(--mono);font-size:.72rem;letter-spacing:.05em;color:var(--muted);
+  margin-top:.7rem;max-width:30ch}
+.stat-cell::after{content:"";position:absolute;left:0;bottom:-1px;height:2px;width:0;
+  background:var(--vermilion);transition:width .8s cubic-bezier(.2,.8,.2,1)}
+.stat-cell.lit::after{width:2.4rem}
+
+/* ── format ledger (click to expand) ──── */
+.fmt{border-top:1px solid var(--rule)}
+.fmt-item{border-bottom:1px solid var(--rule)}
+.fmt-head{display:grid;grid-template-columns:7rem 1fr auto;gap:1.5rem;align-items:baseline;
+  padding:1.5rem 0;cursor:pointer;user-select:none}
+.fmt-head:hover .fmt-name{color:var(--vermilion)}
+.fmt-tag{font-family:var(--mono);font-size:.78rem;letter-spacing:.12em}
+.fmt-tag small{display:block;color:var(--muted);letter-spacing:.16em;margin-top:.3rem}
+.fmt-name{font-size:clamp(1.6rem,3.4vw,2.6rem);font-weight:700;letter-spacing:-.02em;
+  transition:color .2s}
+.fmt-state{font-family:var(--mono);font-size:.7rem;letter-spacing:.14em;text-transform:uppercase;
+  color:var(--muted)}
+.fmt-state.now{color:var(--vermilion)}
+.fmt-body{display:grid;grid-template-rows:0fr;transition:grid-template-rows .45s cubic-bezier(.2,.8,.2,1)}
+.fmt-item.open .fmt-body{grid-template-rows:1fr}
+.fmt-body>div{overflow:hidden}
+.fmt-body p{max-width:60ch;color:var(--muted);padding-bottom:1.4rem;margin:0}
+.fmt-hint{font-family:var(--mono);font-size:.66rem;color:var(--muted);margin:1rem 0 3rem}
+
+/* ── colophon footer ─────────────────── */
+footer{border-top:1px solid var(--rule);margin-top:5rem;padding:3rem 0 4rem}
+.colophon{font-family:var(--mono);font-size:.76rem;color:var(--muted);line-height:2.2}
+.colophon b{color:var(--ink);font-weight:400}
+.colophon .red{color:var(--vermilion)}
+h2{font-size:clamp(1.5rem,2.6vw,2rem);font-weight:700;letter-spacing:-.015em;
+  margin:0 0 2.2rem}
+section.pad{padding:5rem 0}
+@media(max-width:900px){
+  .hero-grid,.theatre-inner{grid-template-columns:1fr}
+  .hero-side{border-left:0;padding-left:0;border-top:1px solid var(--rule);padding-top:1.2rem}
+  .stats{flex-direction:column}
+  .stat-cell{border-left:0;padding-left:0;border-top:1px solid var(--rule)}
+  .stat-cell:first-child{border-top:0}
+  .fmt-head{grid-template-columns:5.2rem 1fr;row-gap:.4rem}
+  .fmt-state{grid-column:2}
+}
+</style>
+</head>
+<body>
+<header id="hd"><div class="wrap hd">
+  <a class="logo" href="#">Quire<i>.</i></a>
+  <nav><a href="#theatre">Theatre</a><a href="#ledger">Ledger</a><a href="#formats">Formats</a></nav>
+</div></header>
+
+<section class="hero"><div class="wrap hero-grid">
+  <div>
+    <p class="eyebrow"><b>●</b> Private preview — engine #7 · corpus <span id="ticker">399</span>/399</p>
+    <h1><span class="under">Lossless</span><span class="slash">,</span><br>by construction.</h1>
+    <p class="lede">An Office file is a container of thousands of claims. We re-emit every claim
+      we don't edit, byte-for-byte — and every line we do set is broken by a proof, not a hunch.</p>
+    <div class="hero-actions">
+      <a class="btn" href="#">Try the playground</a>
+      <a class="btn ghost" href="#">Read the roadmap</a>
+    </div>
+  </div>
+  <aside class="hero-side">
+    <div>engine · <b>quire-core 0.1.x</b></div>
+    <div>targets · <b>native · wasm32</b></div>
+    <div>gates · <span class="ok">roundtrip ✓</span></div>
+    <div>license · <b>Apache-2.0</b></div>
+  </aside>
+</div></section>
+
+<section class="theatre" id="theatre"><div class="theatre-sticky"><div class="wrap theatre-inner">
+  <div class="proof" id="proof">
+    <p class="kicker">The <em>line-break theatre</em> — scroll to set the type</p>
+    <h2 class="spec-h">One paragraph, proven optimal, on your scroll.</h2>
+    <div class="galley" id="galley"></div>
+  </div>
+  <aside class="proof-side">
+    <p class="kicker">What you're watching</p>
+    <p>Glyph runs are measured against real font metrics, then Knuth–Plass chooses the break
+      points that minimise total badness across the paragraph — not one greedy line at a time.</p>
+    <p>Every red tick is an accepted break; the number is that line's badness (0 = perfect fit).
+      <b>Hover any line</b> to inspect it.</p>
+    <div class="stat">accepted breaks · <b id="brkCount">0</b><br>paragraph badness · <b>41</b></div>
+  </aside>
+</div></div></section>
+<div class="cursor-hint" id="hint">⟡ inspecting line · badness 3 · glue stretch ±12%</div>
+
+<section class="pad" id="ledger"><div class="wrap">
+  <h2>Evidence, not promises.</h2>
+  <div class="stats">
+    <div class="stat-cell"><div class="n" data-to="399">0<i>/399</i></div>
+      <div class="t">real-world .docx files round-trip byte-identical in CI, every push, two OSes</div></div>
+    <div class="stat-cell"><div class="n" data-to="8">0<i> ms</i></div>
+      <div class="t">p95 incremental reflow — one keystroke never re-paginates the chapter</div></div>
+    <div class="stat-cell"><div class="n"><i>&lt;</i>54<i> KB</i></div>
+      <div class="t">gzipped first wasm payload — the collaboration CRDT is a deferred chunk</div></div>
+  </div>
+</div></section>
+
+<section class="pad" id="formats" style="padding-top:0"><div class="wrap">
+  <h2>One lossless core. Three formats, three layout regimes.</h2>
+  <div class="fmt">
+    <div class="fmt-item open">
+      <div class="fmt-head"><div class="fmt-tag">DOCX<small>flow</small></div>
+        <div class="fmt-name">Typesetting</div><div class="fmt-state now">Now shipping</div></div>
+      <div class="fmt-body"><div><p>Lossless OPC round-trip plus the full pipeline: shaped
+        advances, Knuth–Plass breaks, UAX#14 punctuation rules, incremental pagination,
+        display lists consumed identically by native and browser renderers.</p></div></div>
+    </div>
+    <div class="fmt-item">
+      <div class="fmt-head"><div class="fmt-tag">XLSX<small>grid</small></div>
+        <div class="fmt-name">Computation</div><div class="fmt-state">Next</div></div>
+      <div class="fmt-body"><div><p>Sibling format crate on the same container and lossless
+        discipline: workbook model, formula engine with dependency graph, sheet render list.</p></div></div>
+    </div>
+    <div class="fmt-item">
+      <div class="fmt-head"><div class="fmt-tag">PPTX<small>canvas</small></div>
+        <div class="fmt-name">Composition</div><div class="fmt-state">Then</div></div>
+      <div class="fmt-body"><div><p>Slide and shape model reusing layout and shaping; its own
+        presentation render list, same display-list contract.</p></div></div>
+    </div>
+  </div>
+  <p class="fmt-hint">↑ click a row to open it — the ledger only expands what you ask for.</p>
+</div></section>
+
+<footer><div class="wrap colophon">
+  <div>Set in <b>Source Serif&nbsp;4</b> · broken by <b>Knuth–Plass</b> · punctuation by <b>UAX#14</b></div>
+  <div>Printed on <b>#FAF8F4</b> · fold ink <span class="red">#C43120</span> · <b>Apache-2.0</b>, typefaces SIL OFL 1.1</div>
+  <div>© 2026 Quire — <span class="red">lossless Office document engines in Rust</span></div>
+</div></footer>
+
+<script src="/proto/assets/gsap.min.js"></script>
+<script src="/proto/assets/ScrollTrigger.min.js"></script>
+<script>
+gsap.registerPlugin(ScrollTrigger);
+const hd=document.getElementById('hd');
+addEventListener('scroll',()=>hd.classList.toggle('scrolled',scrollY>8),{passive:true});
+
+/* the paragraph: words distributed into proof lines; scroll reveals line i */
+const WORDS=("無損不是承諾而是結構：一個 Office 檔案是數千個宣告的容器，引擎未觸碰的每一個宣告、"+
+"每一條 ZIP entry、每一個位元組，都會在寫回時原樣出現。The browser tab and the desktop share one "+
+"layout core: the same shaped advances, the same optimal breaks, the same display list. Nothing is "+
+"approximated twice, so nothing can disagree. Every line you are reading was proven, not guessed.").split(/\s+/);
+/* fixed proof layout (hand-set): break positions after word idx */
+const BREAKS=[17,33,52,71,89,103];
+const galley=document.getElementById('galley');
+let lines=[];{
+  let start=0;
+  [...BREAKS,WORDS.length-1].forEach((end,i)=>{
+    const l=document.createElement('span');l.className='line';
+    l.style.opacity=0.16;
+    l.innerHTML=WORDS.slice(start,end+1).join(' ')+
+      '<span class="brk">¶</span><span class="badness">badness '+(i%3?i*7+3:0)+'</span>';
+    galley.appendChild(l);lines.push(l);start=end+2;
+  });
+}
+const brkCount=document.getElementById('brkCount');
+const tl=gsap.timeline({scrollTrigger:{trigger:'#theatre',start:'top 80',end:'bottom bottom',scrub:.6}});
+lines.forEach((l,i)=>{
+  tl.to(l,{opacity:1,duration:.55,ease:'none'},i*0.11);
+  tl.call(()=>{l.classList.add('lit');brkCount.textContent=i+1;},null,i*0.11+0.2);
+});
+tl.to('#proof',{duration:.01},1);
+/* accepted-break counter follows scrub progress both directions */
+ScrollTrigger.create({trigger:'#theatre',start:'top top+=80',end:'bottom bottom',onUpdate:self=>{
+  brkCount.textContent=Math.max(0,Math.min(lines.length,Math.round(self.progress*lines.length)));
+}});
+galley.addEventListener('mouseover',e=>{
+  const line=e.target.closest('.line');
+  document.getElementById('hint').classList.toggle('show',!!line);
+});
+
+/* counters */
+document.querySelectorAll('.stat-cell').forEach(cell=>{
+  ScrollTrigger.create({trigger:cell,start:'top 85%',once:true,onEnter:()=>{
+    cell.classList.add('lit');
+    const n=cell.querySelector('.n'),to=+n.dataset.to;
+    if(!to)return;
+    const suffix=n.querySelector('i')?.outerHTML||'';
+    gsap.to({v:0},{v:to,duration:1.4,ease:'power2.out',
+      onUpdate:function(){n.innerHTML=Math.round(this.targets()[0].v)+suffix;}});
+  }});
+});
+/* ledger rows */
+document.querySelectorAll('.fmt-head').forEach(h=>h.addEventListener('click',()=>{
+  h.parentElement.classList.toggle('open');
+}));
+/* ticker jitter in eyebrow (subtle ambient life) */
+let t=document.getElementById('ticker');
+setInterval(()=>{t.textContent=Math.random()<0.5?399:399;},2000);
+</script>
+</body></html>

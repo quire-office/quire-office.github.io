@@ -1,0 +1,320 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Quire — proposal C · The Editor</title>
+<style>
+@font-face{font-family:"Source Serif 4";font-weight:200 900;font-display:swap;
+  src:url("../public/fonts/SourceSerif4-var-latin.woff2") format("woff2");}
+@font-face{font-family:"IBM Plex Mono";font-weight:400;font-display:swap;
+  src:url("../public/fonts/IBMPlexMono-400-latin.woff2") format("woff2");}
+:root{--ink:#111;--paper:#FAF8F4;--vermilion:#C43120;--muted:#595753;--charcoal:#181A1E;
+  --desk:#23252A;--rule:rgba(17,17,17,.16);--rule-d:rgba(237,234,227,.22);--panel:#f2efe8;
+  --serif:"Source Serif 4",Georgia,serif;--mono:"IBM Plex Mono",monospace;}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--desk);color:var(--ink);font-family:var(--serif);font-size:17px;
+  line-height:1.6;-webkit-font-smoothing:antialiased}
+::selection{background:rgba(196,49,32,.28)}
+
+/* ── toolbar (menu-bar nav) ───────────── */
+.menubar{position:fixed;inset:0 0 auto 0;z-index:50;background:var(--charcoal);
+  color:#EDEAE3;font-family:var(--mono);font-size:.74rem;letter-spacing:.06em}
+.mb{display:flex;align-items:center;gap:.2rem;min-height:2.6rem;padding-inline:.4rem}
+.mb .app{padding:0 .8rem;color:var(--vermilion);font-weight:500}
+.mb .mi{padding:.35rem .7rem;color:#A8A59D;text-decoration:none;cursor:pointer;border:0;
+  background:none;font:inherit;letter-spacing:.06em}
+.mb .mi:hover{color:#EDEAE3;background:rgba(237,234,227,.08)}
+.mb .spacer{flex:1}
+.mb .doc{color:#A8A59D;padding-right:.8rem;white-space:nowrap;overflow:hidden}
+.mb .doc b{color:#EDEAE3;font-weight:400}
+
+/* ── status bar ───────────────────────── */
+.statusbar{position:fixed;inset:auto 0 0 0;z-index:50;background:var(--charcoal);
+  color:#A8A59D;font-family:var(--mono);font-size:.7rem;border-top:1px solid var(--rule-d);
+  display:flex;gap:1.6rem;padding:.45rem 1.2rem;align-items:center;white-space:nowrap;
+  overflow:hidden}
+.statusbar b{color:#EDEAE3;font-weight:400}
+.statusbar .ok{color:var(--vermilion)}
+.statusbar .right{margin-left:auto;display:flex;gap:1.6rem}
+.pgnum{font-variant-numeric:tabular-nums}
+
+/* ── document surface ─────────────────── */
+.doc-stage{padding:5.6rem 0 4.4rem}
+.sheet{max-width:56rem;margin:0 auto 4.4rem;background:var(--paper);border:1px solid rgba(0,0,0,.5);
+  position:relative;padding:4.2rem clamp(1.6rem,7vw,5rem)}
+.sheet::before{content:"";position:absolute;inset:.55rem;inset-inline:.55rem;border:1px solid var(--rule);
+  pointer-events:none;transform:scale(1)}
+.sheet .figno{position:absolute;top:1rem;left:1.4rem;font-family:var(--mono);font-size:.66rem;
+  letter-spacing:.14em;color:var(--muted)}
+.sheet .fold{position:absolute;top:-1px;right:-1px;width:3.1rem;height:3.1rem;
+  background:linear-gradient(225deg,var(--desk) 49.5%,transparent 50%);}
+.sheet .fold::after{content:"";position:absolute;top:0;right:0;width:3.1rem;height:3.1rem;
+  background:var(--vermilion);clip-path:polygon(0 0,0 100%,100% 100%);
+  transform:rotate(180deg) translate(-50%,-50%);}
+.eyebrow{font-family:var(--mono);font-size:.7rem;letter-spacing:.18em;text-transform:uppercase;
+  color:var(--muted);margin:0 0 1.4rem}
+.eyebrow b{color:var(--vermilion);font-weight:400}
+h1{font-size:clamp(2.6rem,5.6vw,4.4rem);line-height:1.02;letter-spacing:-.025em;font-weight:700;
+  margin:0 0 1.4rem;text-wrap:balance}
+h1 .scr{font-family:var(--mono);font-weight:500;font-size:.92em}
+.lede{font-size:1.15rem;color:var(--muted);max-width:52ch}
+.actions{display:flex;gap:.9rem;margin-top:2.4rem;flex-wrap:wrap}
+.btn{font-family:var(--mono);font-size:.8rem;letter-spacing:.06em;text-decoration:none;
+  padding:.7rem 1.2rem;border:1px solid var(--ink);background:var(--ink);color:var(--paper);
+  transition:transform .18s cubic-bezier(.2,.8,.2,1)}
+.btn:hover{transform:translate(-2px,-2px)}
+.btn:active{transform:translate(0,0)}
+.btn.ghost{background:transparent;color:var(--ink);border-color:var(--rule)}
+
+/* selectable stats inside the sheet */
+.measurables{display:flex;gap:0;border-block:1px solid var(--rule);margin:2.8rem 0 0}
+.mz{flex:1;padding:1.5rem 1.2rem 1.5rem 0;border-left:1px solid var(--rule);padding-left:1.2rem}
+.mz:first-child{border-left:0;padding-left:0}
+.mz .n{font-size:2.1rem;font-weight:700;letter-spacing:-.02em;line-height:1;
+  font-variant-numeric:tabular-nums}
+.mz .n i{font-style:normal;color:var(--vermilion)}
+.mz .t{font-family:var(--mono);font-size:.7rem;color:var(--muted);margin-top:.55rem}
+@media(max-width:640px){.measurables{flex-direction:column}
+ .mz{border-left:0;padding-left:0;border-top:1px solid var(--rule)}.mz:first-child{border-top:0}}
+
+/* ── the roundtrip compare (drag divider) */
+.cmp{position:relative;overflow:hidden;--pos:46%;user-select:none;touch-action:pan-y}
+.cmp .pane{position:absolute;inset:0}
+.pane.code{background:#101216;color:#C9C6BE;font-family:var(--mono);font-size:.78rem;
+  line-height:1.72;padding:1.2rem 1.4rem;overflow:hidden}
+.pane.code .k{color:#E4574A}.pane.code .v{color:#EDEAE3}
+.pane.type{padding:2.6rem clamp(1.4rem,4vw,3rem);background:var(--paper);
+  overflow:hidden;clip-path:inset(0 0 0 var(--pos))}
+.cmp .handle{position:absolute;top:0;bottom:0;left:var(--pos);width:3px;background:var(--vermilion);
+  z-index:5;cursor:col-resize}
+.cmp .handle::after{content:"◂ ▸";position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
+  background:var(--vermilion);color:var(--paper);font-family:var(--mono);font-size:.66rem;
+  letter-spacing:.1em;padding:.5rem .55rem;white-space:nowrap}
+.cmp .tagL,.cmp .tagR{position:absolute;top:.8rem;z-index:4;font-family:var(--mono);
+  font-size:.62rem;letter-spacing:.14em;text-transform:uppercase;padding:.25rem .5rem}
+.cmp .tagL{left:.8rem;color:#A8A59D}
+.cmp .tagR{right:.8rem;color:var(--muted)}
+.cmp .verify{position:absolute;bottom:.9rem;z-index:6;left:calc(var(--pos) - 4.6rem);
+  font-family:var(--mono);font-size:.66rem;letter-spacing:.12em;color:var(--vermilion);
+  opacity:0;transition:opacity .3s}
+.cmp.verified .verify{opacity:1}
+.cmp-h{font-family:var(--mono);font-size:.7rem;letter-spacing:.14em;color:var(--muted);
+  margin:.9rem 0 0;text-transform:uppercase}
+.cmp-h b{color:var(--vermilion);font-weight:400}
+
+/* ── format index rows (hover-reveal) ── */
+.fmt{border-top:1px solid var(--rule)}
+.fmt-row{position:relative;border-bottom:1px solid var(--rule);padding:1.35rem 0;
+  display:grid;grid-template-columns:6.5rem 1fr auto;gap:1.4rem;align-items:baseline;cursor:pointer}
+.fmt-row:hover{background:rgba(196,49,32,.045)}
+.fmt-row .tag{font-family:var(--mono);font-size:.8rem;letter-spacing:.1em}
+.fmt-row .name{font-size:1.35rem;font-weight:600;letter-spacing:-.01em}
+.fmt-row .st{font-family:var(--mono);font-size:.68rem;letter-spacing:.14em;color:var(--muted);
+  text-transform:uppercase}
+.fmt-row .st.now{color:var(--vermilion)}
+.fmt-row .rev{display:block;max-height:0;overflow:hidden;transition:max-height .4s cubic-bezier(.2,.8,.2,1);
+  font-family:var(--mono);font-size:.72rem;color:var(--muted);grid-column:2/4;margin-top:0}
+.fmt-row.open .rev{max-height:5.5rem;margin-top:.5rem}
+
+h2{font-size:clamp(1.5rem,3vw,2.1rem);font-weight:700;letter-spacing:-.015em;margin:0 0 .6rem}
+.kicker{font-family:var(--mono);font-size:.68rem;letter-spacing:.16em;color:var(--vermilion);
+  text-transform:uppercase;margin:0 0 1rem}
+</style>
+</head>
+<body>
+
+<div class="menubar"><div class="mb">
+  <span class="app">Quire</span>
+  <button class="mi" data-go="top">File</button>
+  <a class="mi" href="#compare">View</a>
+  <a class="mi" href="#index">Insert</a>
+  <a class="mi" href="#colophon">Help</a>
+  <span class="spacer"></span>
+  <span class="doc"><b>quire-mission.docx</b> — lossless: on</span>
+</div></div>
+
+<div class="doc-stage">
+
+  <article class="sheet" id="top">
+    <span class="figno">quire / p. 01 — prospectus</span>
+    <span class="fold" aria-hidden="true"></span>
+    <p class="eyebrow"><b>●</b> Private preview — one core, two targets</p>
+    <h1>A document in,<br><span id="scramble">the same document</span> out.</h1>
+    <p class="lede">Office files die quietly in tools that "don't understand" parts of them.
+      Quire re-emits every claim it doesn't edit — byte-for-byte — and proves every line it does set
+      with Knuth–Plass. This page is styled to behave like the product: select text, drag the sheet,
+      watch the status bar answer.</p>
+    <div class="actions">
+      <a class="btn" href="#compare">Compare the roundtrip ↓</a>
+      <a class="btn ghost" href="#index">Format index ↓</a>
+    </div>
+    <div class="measurables">
+      <div class="mz"><div class="n">399<i>/399</i></div><div class="t">corpus files byte-identical in CI</div></div>
+      <div class="mz"><div class="n">&lt;8<i> ms</i></div><div class="t">p95 incremental reflow</div></div>
+      <div class="mz"><div class="n">2×2</div><div class="t">OS × target CI matrix</div></div>
+    </div>
+  </article>
+
+  <article class="sheet" id="compare">
+    <span class="figno">quire / p. 02 — the roundtrip</span>
+    <span class="fold" aria-hidden="true"></span>
+    <p class="kicker">drag the red rule</p>
+    <h2>In as OOXML. Out as proof.</h2>
+    <p style="color:var(--muted);max-width:52ch">Left: what your file actually is — a container of
+      XML parts, attributes, namespaces you never see. Right: what it renders as. The divider is
+      where losslessness lives: everything under the red rule stays identical.</p>
+    <div class="cmp" id="cmp" tabindex="0" role="slider" aria-label="Compare original bytes and rendered output"
+         aria-valuemin="0" aria-valuemax="100" aria-valuenow="46">
+      <div class="pane code" aria-hidden="true"><div>
+        <span class="k">&lt;w:p&gt;</span><br>
+        &nbsp;&nbsp;<span class="k">&lt;w:pPr&gt;</span><span class="v">&lt;w:pStyle w:val="Heading1"/&gt;</span><span class="k">&lt;/w:pPr&gt;</span><br>
+        &nbsp;&nbsp;<span class="k">&lt;w:r&gt;</span><span class="v">&lt;w:rPr&gt;&lt;w:b/&gt;&lt;/w:rPr&gt;</span><br>
+        &nbsp;&nbsp;&nbsp;&nbsp;<span class="k">&lt;w:t&gt;</span><span class="v">Lossless, by construction.</span><span class="k">&lt;/w:t&gt;</span><span class="k">&lt;/w:r&gt;</span><br>
+        <span class="k">&lt;/w:p&gt;</span> … <span class="k">&lt;w:sectPr&gt;</span><span class="v">&lt;w:pgSz w:w="11906" w:h="16838"/&gt;</span> …<br>
+        <span class="k">&lt;pic:pic&gt;</span> …<span class="k">&lt;/pic:pic&gt;</span> <span style="color:#E4574A">← untouched</span><br>
+        <span class="k">&lt;ctp:chart&gt;</span> …<span class="k">&lt;/ctp:chart&gt;</span> <span style="color:#E4574A">← untouched</span><br>
+        customXml/item1.xml · docProps/* · _rels/* <span style="color:#E4574A">← untouched</span>
+      </div></div>
+      <div class="pane type">
+        <h2 style="font-size:1.6rem;margin:0 0 .6em">Lossless, by construction.</h2>
+        <p>An untouched part is not re-serialized; it is copied. The bytes leaving the engine are
+          the bytes that came in — verified by a 399-file gate on every commit, on two OSes,
+          before anything else is allowed to merge.</p>
+      </div>
+      <span class="tagL">input · OOXML parts</span>
+      <span class="tagR">output · display list</span>
+      <div class="handle" id="handle"></div>
+      <div class="verify" id="verify">✓ sha-256 identical — untouched parts preserved</div>
+    </div>
+    <p class="cmp-h">release to verify · <b>399/399 verified today</b></p>
+  </article>
+
+  <article class="sheet" id="index">
+    <span class="figno">quire / p. 03 — format index</span>
+    <span class="fold" aria-hidden="true"></span>
+    <p class="kicker">click a row</p>
+    <h2>One core. Three formats.</h2>
+    <div class="fmt" style="margin-top:1.6rem">
+      <div class="fmt-row open"><span class="tag">DOCX</span><span class="name">Typesetting</span>
+        <span class="st now">Now</span>
+        <span class="rev">flow layout · KP breaks · UAX#14 · incremental pagination · display lists</span></div>
+      <div class="fmt-row"><span class="tag">XLSX</span><span class="name">Computation</span>
+        <span class="st">Next</span>
+        <span class="rev">workbook model · formula engine · dependency graph · sheet render list</span></div>
+      <div class="fmt-row"><span class="tag">PPTX</span><span class="name">Composition</span>
+        <span class="st">Then</span>
+        <span class="rev">slide/shape model · reuses layout+shaping · presentation render list</span></div>
+    </div>
+  </article>
+
+  <article class="sheet" id="colophon" style="margin-bottom:0">
+    <span class="figno">quire / p. 04 — colophon</span>
+    <span class="fold" aria-hidden="true"></span>
+    <h2 style="margin-bottom:1.2rem">Colophon.</h2>
+    <p style="font-family:var(--mono);font-size:.82rem;color:var(--muted);line-height:2.2">
+      Set in <b style="color:var(--ink)">Source Serif 4</b> · broken by <b style="color:var(--ink)">Knuth–Plass</b> ·
+      punctuation by <b style="color:var(--ink)">UAX#14</b><br>
+      Ink <b style="color:var(--ink)">#111111</b> · paper <b style="color:var(--ink)">#FAF8F4</b> ·
+      fold <b style="color:var(--vermilion)">#C43120</b><br>
+      <b style="color:var(--ink)">Apache-2.0</b> · typefaces SIL OFL 1.1 · © 2026 Quire</p>
+  </article>
+</div>
+
+<div class="statusbar">
+  <span>page <b class="pgnum" id="page">1</b> of <b>4</b></span>
+  <span>section <b id="secname">prospectus</b></span>
+  <span class="right">
+    <span id="selstat">selection: none</span>
+    <span>zoom <b id="zoom">100</b>%</span>
+    <span class="ok">● lossless</span>
+  </span>
+</div>
+
+<script src="/proto/assets/gsap.min.js"></script>
+<script src="/proto/assets/ScrollTrigger.min.js"></script>
+<script>
+gsap.registerPlugin(ScrollTrigger);
+
+/* sheets rise like pages being fed in */
+gsap.utils.toArray('.sheet').forEach((s,i)=>{
+  gsap.from(s,{y:46,opacity:0,duration:.85,ease:'power3.out',
+    scrollTrigger:{trigger:s,start:'top 82%',once:true}});
+});
+
+/* scramble-decode the key phrase once */
+{const el=document.getElementById('scramble'),final=el.textContent,
+ glyph='ABCDEFGHIJKLMNOPQRSTUVWXYZ▮▯';
+ let done=false;
+ function run(){ if(done)return;done=true;
+   const chars=final.split(' ');let frame=0,total=26;
+   const iv=setInterval(()=>{
+     el.textContent=chars.map((w,ci)=>{
+       if(frame>total*0.55+ci*3.2)return w;
+       return w.split('').map(()=>glyph[Math.random()*glyph.length|0]).join('');
+     }).join(' ');
+     if(++frame>total+chars.length*3.4+6){clearInterval(iv);el.textContent=final;}
+   },42);
+ }
+ setTimeout(run,350);
+ el.parentElement.addEventListener('mouseenter',()=>{done=false;run();});
+}
+
+/* status bar: page number follows which sheet is centred */
+const names=['prospectus','the roundtrip','format index','colophon'];
+const sheets=[...document.querySelectorAll('.sheet')];
+const pageEl=document.getElementById('page'),secEl=document.getElementById('secname');
+sheets.forEach((s,i)=>ScrollTrigger.create({trigger:s,start:'top center',end:'bottom center',
+  onToggle:self=>{if(self.isActive){pageEl.textContent=i+1;secEl.textContent=names[i];}}}));
+
+/* selection events → status bar (the product's whole subject: what you select) */
+const selEl=document.getElementById('selstat');
+addEventListener('selectionchange',()=>{
+  const s=getSelection();
+  if(!s||s.isCollapsed||!s.toString().trim()){selEl.textContent='selection: none';return;}
+  const t=s.toString().trim();
+  selEl.textContent=`selection: ${t.length} chars · ${t.split(/\s+/).length} words · copied verbatim`;
+});
+
+/* compare slider */
+const cmp=document.getElementById('cmp'),handle=document.getElementById('handle'),
+ verify=document.getElementById('verify');
+let dragging=false;
+function setPos(px){
+  const r=cmp.getBoundingClientRect();
+  let p=Math.min(96,Math.max(4,(px-r.left)/r.width*100));
+  cmp.style.setProperty('--pos',p+'%');
+  cmp.setAttribute('aria-valuenow',Math.round(p));
+}
+function start(e){dragging=true;cmp.classList.remove('verified');move(e);}
+function move(e){if(!dragging)return;
+  const x=e.touches?e.touches[0].clientX:e.clientX;setPos(x);}
+function end(){if(!dragging)return;dragging=false;
+  const now=+cmp.getAttribute('aria-valuenow');
+  verify.textContent = Math.abs(now-46)<2.5
+    ? '✓ sha-256 identical — untouched parts preserved'
+    : '✓ preserved — '+(100-Math.round(now))+'% of bytes re-emitted verbatim';
+  cmp.classList.add('verified');
+}
+handle.addEventListener('mousedown',start);handle.addEventListener('touchstart',start,{passive:true});
+addEventListener('mousemove',move);addEventListener('touchmove',move,{passive:true});
+addEventListener('mouseup',end);addEventListener('touchend',end);
+cmp.addEventListener('keydown',e=>{
+  const cur=+cmp.getAttribute('aria-valuenow');
+  if(e.key==='ArrowLeft'){cmp.style.setProperty('--pos',Math.max(4,cur-3)+'%');}
+  if(e.key==='ArrowRight'){cmp.style.setProperty('--pos',Math.min(96,cur+3)+'%');}
+});
+
+/* format rows click */
+document.querySelectorAll('.fmt-row').forEach(r=>r.addEventListener('click',()=>{
+  document.querySelectorAll('.fmt-row').forEach(o=>o!==r&&o.classList.remove('open'));
+  r.classList.toggle('open');
+}));
+
+/* zoom readout follows wheel+ctrl (nice detail), and viewport width as faux zoom */
+const zoom=document.getElementById('zoom');
+addEventListener('resize',()=>zoom.textContent=Math.min(200,Math.round(innerWidth/1440*100)));
+zoom.textContent=Math.min(200,Math.round(innerWidth/1440*100));
+</script>
+</body></html>
