@@ -26,6 +26,7 @@
 .quire-home .hero-actions{display:flex;gap:.9rem;margin-top:2rem;flex-wrap:wrap}
 .quire-home .hero-d .btn-ghost{border-color:rgba(237,234,227,.4);color:#EDEAE3}
 .quire-home .hero-d .btn-ghost:hover{background:#EDEAE3;color:var(--charcoal)}
+.quire-home .hero-d .cta-note{display:inline-block;margin-left:.5em;font:400 10px/1 var(--mono,ui-monospace,monospace);letter-spacing:.08em;text-transform:uppercase;opacity:.55}
 
 .quire-home .rain{position:absolute;inset:0;opacity:.10;pointer-events:none;
   font-family:var(--font-mono);font-size:11px;line-height:1.9;color:#EDEAE3;overflow:hidden;
