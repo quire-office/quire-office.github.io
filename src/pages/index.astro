@@ -3,8 +3,8 @@ import Base from '../layouts/Base.astro';
 import '../styles/home.css';
 ---
 <Base
-  title="Quire — Lossless Office document engines in Rust"
-  description="Quire builds lossless Office document engines in Rust. DOCX in private preview: byte-for-byte round-trip, Knuth-Plass line breaking, one core for native and browser."
+  title="Quire — Rust engines for Office documents"
+  description="Quire is a Rust library for DOCX: open, lay out, render, and save back with untouched ZIP entries returned byte-for-byte. Layout runs on real font metrics with Knuth-Plass line breaking; one core compiles to native and wasm."
   path="/"
 >
 <div class="quire-home">
@@ -14,7 +14,7 @@ import '../styles/home.css';
     <div class="wrap">
       <div>
         <div class="kicker-row">
-          <p class="kicker"><b>●</b> Private preview — one core · two targets</p>
+          <p class="kicker"><b>●</b> Rust library · DOCX today · XLSX in progress</p>
           <a class="kicker-gh" href="https://github.com/quire-office" rel="me">
             <svg viewBox="0 0 16 16" width="14" height="14" fill="currentColor" aria-hidden="true">
               <path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27s1.36.09 2 .27c1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A7.995 7.995 0 0 0 16 8c0-4.42-3.58-8-8-8Z"/>
@@ -22,15 +22,16 @@ import '../styles/home.css';
             GitHub
           </a>
         </div>
-        <h1>A document in, the <span class="lit">same document</span> out — every line proven.</h1>
+        <h1>A document in, the <span class="lit">same document</span> out.</h1>
         <div class="lede">
-          <p>Three planes, one file: the bytes you trust, the layout we prove, the page you get.
-            Scroll to collapse the stack — losslessness is the distance between them being zero.</p>
-          <p lang="zh-Hant">三層紙、一個檔案：你信任的位元組、我們證明的版面、你看到的頁面。
-            向下捲動把紙堆壓平——無損，就是三者之間的距離為零。</p>
+          <p>Quire opens a <code>.docx</code>, lays it out from real font metrics, and renders it —
+            and when it saves, anything it didn't modify goes back byte-for-byte. CI checks that
+            second part on 399 real files.</p>
+          <p lang="zh-Hant">Quire 開啟 <code>.docx</code>、以真實字型度量排版、輸出渲染結果；存回時，
+            引擎沒改動的部分會位元組級原樣寫回——這件事由 CI 在 399 份真實檔案上逐檔驗證。</p>
         </div>
         <div class="hero-actions">
-          <a class="btn" href="/playground">Try the playground</a>
+          <a class="btn" href="/playground">Playground <span class="cta-note">in progress</span></a>
           <a class="btn btn-ghost" href="https://github.com/quire-office" rel="me">View on GitHub</a>
           <a class="btn btn-ghost" href="/roadmap">Read the roadmap</a>
         </div>
@@ -44,9 +45,9 @@ import '../styles/home.css';
               <span class="chip">model · KP break points</span></div>
             <div class="plane p-type" data-p="type"><div class="card">
               <div class="hd">quire / specimen</div>
-              <p>無損不是承諾，而是結構：引擎未觸碰的每一個位元組，都會在寫回時原樣出現。</p>
-              <p>The browser tab and the desktop share one layout core — same advances, same breaks, same display list.</p>
-              <p class="red">¶ every break proven, never guessed</p>
+              <p lang="zh-Hant">存回時，引擎未觸碰的每一個位元組都原樣出現；這條性質由 roundtrip --check 逐檔檢查。</p>
+              <p>The browser tab and the desktop run the same layout core: same advances, same breaks, same display list.</p>
+              <p class="red">¶ break points are golden-tested</p>
               <p>Everything you see is a rendering target: display lists out, pixels in.</p>
             </div><span class="chip">display list · your page</span></div>
           </div>
@@ -61,15 +62,16 @@ import '../styles/home.css';
   <div class="wrap pipe" id="pipe">
     <div class="pipe-sticky">
       <h2>The pipeline.</h2>
-      <p>Three stages, one Rust core, compiled twice. Nothing is approximated twice —
-        so browser and desktop cannot disagree.</p>
+      <p>Three stages, one Rust core, compiled twice. Each stage computes once —
+        browser and desktop draw from the same numbers.</p>
       <div class="rail" id="rail"></div>
     </div>
     <div class="pipe-flow">
       <section class="stage">
-        <span class="tag">Stage 01 · parse</span><h3>The container opens, nothing is thrown away</h3>
-        <p>OPC is unzipped entry by entry. Every part — even ones Quire has never seen — is claimed,
-          content-addressed, held for write-back. Unknown is not the same as absent.</p>
+        <span class="tag">Stage 01 · parse</span><h3>Every ZIP entry is kept, even the ones we ignore</h3>
+        <p>The OPC container is unzipped entry by entry. Parts the engine understands become
+          models; everything else — customXml, unknown extensions — is held in raw bytes and
+          written back unchanged.</p>
         <figure class="fig"><svg viewBox="0 0 640 150" role="img" aria-label="ZIP parts claimed and held byte-for-byte"><g class="draw">
           <rect class="dl" x="10" y="40" width="120" height="70"/><text class="ln" x="30" y="80">.docx zip</text>
           <path class="dl" d="M140 75 h60 m-12 -8 l12 8 -12 8"/>
@@ -83,8 +85,9 @@ import '../styles/home.css';
       </section>
       <section class="stage">
         <span class="tag">Stage 02 · shape + break</span><h3>Real metrics, Knuth–Plass optimum</h3>
-        <p>Shaped advances against real fonts; breaks chosen jointly per paragraph to minimise total
-          badness. UAX#14 decides legality — KP decides what is right.</p>
+        <p>Text is measured against real font outlines; break points are chosen per paragraph to
+          minimise total badness (Knuth–Plass), with UAX#14 deciding which breaks are legal at all.
+          Output is locked by golden snapshots, so regressions show up as diffs.</p>
         <figure class="fig"><svg viewBox="0 0 640 150" role="img" aria-label="Greedy versus Knuth-Plass badness curves"><g class="draw">
           <path class="dl" d="M10 120 C 90 120 120 40 200 40 S 320 110 400 70 560 30 630 20"/>
           <path class="dl dl-red" d="M10 130 C 110 130 130 90 210 95 S 330 130 410 105 570 60 630 55"/>
@@ -114,34 +117,34 @@ import '../styles/home.css';
   <!-- ══ 断行劇場：scrub 逐行排版 ══ -->
   <section class="theatre" id="theatre"><div class="theatre-sticky"><div class="wrap theatre-inner">
     <div class="proof">
-      <p class="kicker2">The <em>line-break theatre</em> — scroll to set the type</p>
-      <h2>One paragraph, proven optimal.</h2>
+      <p class="kicker2">The <em>line-break demo</em> — scroll to set the type</p>
+      <h2>One paragraph, one optimum.</h2>
       <div class="galley" id="galley"></div>
     </div>
     <aside class="proof-side">
       <p class="kicker2">What you're watching</p>
-      <p>Knuth–Plass chooses break points that minimise total badness across the paragraph — not one
+      <p>Knuth–Plass picks break points that minimise total badness across the paragraph — not one
         greedy line at a time. Red ticks are accepted breaks; the figure is that line's badness
-        (0 = perfect). Hover any line to inspect it. <span lang="zh-Hant">邊捲動，邊看斷點如何被證明。</span></p>
-      <div class="stat">accepted breaks · <b id="brkCount">0</b><br>paragraph badness · <b>41</b></div>
+        (0 = perfect). Hover any line to inspect it. <span lang="zh-Hant">邊捲動，邊看斷點怎麼選。</span></p>
+      <div class="stat">accepted breaks · <b id="brkCount">0</b></div>
     </aside>
   </div></div></section>
 
   <!-- ══ Evidence counters ══ -->
   <section class="wrap" aria-labelledby="evidence-h" style="padding-top:4.5rem">
-    <h2 id="evidence-h"><span class="sec-no" aria-hidden="true">§ 01</span> Evidence, not promises</h2>
+    <h2 id="evidence-h"><span class="sec-no" aria-hidden="true">§ 01</span> Checked numbers</h2>
     <div class="stats">
       <div class="stat" data-reveal>
         <span class="num"><span id="c399">399</span>/399</span>
         <span class="lbl">real-world corpus files round-trip byte-identical in CI — ZIP64 and unknown extensions included</span>
       </div>
       <div class="stat" data-reveal>
-        <span class="num">2 × 2</span>
-        <span class="lbl">CI matrix: ubuntu / Windows × native + wasm32-unknown-unknown</span>
+        <span class="num">2 OS × 2 targets</span>
+        <span class="lbl">the same gates run on ubuntu and Windows, each building native + wasm32-unknown-unknown (a macOS job exists but is paused for now)</span>
       </div>
       <div class="stat" data-reveal>
         <span class="num">&lt; 54 KB</span>
-        <span class="lbl">gzipped first wasm payload — CRDT collaboration code lives in a deferred chunk</span>
+        <span class="lbl">gzipped first wasm payload — the size budget is a CI gate; CRDT collaboration code lives in a deferred chunk</span>
       </div>
     </div>
   </section>
@@ -149,9 +152,10 @@ import '../styles/home.css';
   <!-- ══ Reflow lab ══ -->
   <section class="lab dark-sec" id="lab"><div class="wrap">
     <h2>Reflow lab — drag it.</h2>
-    <p class="sub">The same justification model the engine uses, live in your browser.
-      <span lang="zh-Hant">拉動滑桿，版面即時重排。</span></p>
-    <div class="lab-frame"><div class="lab-text" id="labtext" lang="zh-Hant">無損不是承諾，而是結構：一個 Office 檔案是數千個宣告的容器，引擎未觸碰的每一個宣告、每一條 ZIP entry、每一個位元組，都會在寫回時原樣出現。瀏覽器分頁與桌面共用同一個排版核心：相同的整形 advance、相同的最佳化斷點、相同的 display list。沒有任何計算被近似兩次，因此也不可能出現分歧——你現在看到的這一行，與原生端渲染的是同一個答案。</div></div>
+    <p class="sub">A feel for what reflow costs: the text here is laid out by CSS, not the engine —
+      the point is the interaction, not the numbers.
+      <span lang="zh-Hant">拉動滑桿感受版面重排；這段用 CSS 排版，不是引擎本身。</span></p>
+    <div class="lab-frame"><div class="lab-text" id="labtext" lang="zh-Hant">一個 Office 檔案是數千個宣告的容器。引擎未觸碰的每一個宣告、每一條 ZIP entry、每一個位元組，都會在寫回時原樣出現；這條性質由 roundtrip --check 逐檔檢查。瀏覽器分頁與桌面共用同一個排版核心：相同的整形 advance、相同的最佳化斷點、相同的 display list，不會出現兩邊算出不同答案的情形。</div></div>
     <div class="controls">
       <label class="ctrl">measure
         <input type="range" id="lw" min="26" max="100" value="100" aria-label="text measure percent"> %</label>
@@ -168,57 +172,59 @@ import '../styles/home.css';
       <article class="fmt" data-reveal>
         <div class="fmt-tag"><span>DOCX</span><span class="fmt-state now">Now</span></div>
         <h3>Flow</h3>
-        <p>Lossless round-trip plus the line-breaking and pagination pipeline — what the private preview runs on.</p>
+        <p>Lossless round-trip plus the line-breaking and pagination pipeline — everything the playground runs on.</p>
       </article>
       <article class="fmt" data-reveal>
-        <div class="fmt-tag"><span>XLSX</span><span class="fmt-state">Next</span></div>
+        <div class="fmt-tag"><span>XLSX</span><span class="fmt-state now">In progress</span></div>
         <h3>Grid</h3>
-        <p>Sibling format crate on the same OPC/lossless core: workbook model, formula engine, sheet render list.</p>
+        <p>Same OPC/lossless layer as DOCX. Workbook model and cell parsing come first; formula engine after.</p>
       </article>
       <article class="fmt" data-reveal>
-        <div class="fmt-tag"><span>PPTX</span><span class="fmt-state">Then</span></div>
+        <div class="fmt-tag"><span>PPTX</span><span class="fmt-state">Planned</span></div>
         <h3>Canvas</h3>
         <p>Slide and shape model reusing the layout and shaping crates; its own presentation render list.</p>
       </article>
     </div>
     <p class="muted" style="font-size:0.95rem;">
-      Shared: OPC container, OOXML part machinery, lossless discipline. Not shared: the
-      layout model — each format typesets the way its format says it should.
+      Shared between the three: the OPC container handling and the byte-level round-trip
+      guarantees. Not shared: the layout model — DOCX flows, XLSX grids, PPTX places boxes.
     </p>
   </section>
 
   <!-- ══ principles ══ -->
   <section class="wrap" aria-labelledby="principles-h">
-    <h2 id="principles-h"><span class="sec-no" aria-hidden="true">§ 03</span> Principles the build enforces</h2>
+    <h2 id="principles-h"><span class="sec-no" aria-hidden="true">§ 03</span> What CI enforces</h2>
     <div class="rows">
       <div class="row" data-reveal>
-        <div class="k">Lossless by construction</div>
-        <p>Untouched ZIP entries are copied byte-for-byte on write-back; <code>roundtrip --check</code> plus a 400-file corpus gate it on every commit across two OSes.</p>
+        <div class="k">Untouched bytes come back identical</div>
+        <p>The ZIP layer copies entries it didn't modify byte-for-byte; <code>roundtrip --check</code> diffs that against a 399-file corpus on every commit.</p>
       </div>
       <div class="row" data-reveal>
         <div class="k">One core, two targets</div>
         <p>The engine compiles to native and <code>wasm32-unknown-unknown</code>. The browser shell is a thin platform adapter, not a second implementation.</p>
       </div>
       <div class="row" data-reveal>
-        <div class="k">Layering, machine-checked</div>
-        <p>Format crates never import shells; shells enter through one engine API. A CI script enforces the boundary instead of a code review convention.</p>
+        <div class="k">Layering, checked by script</div>
+        <p>Format crates never import shells; shells enter through one engine API. <code>check-layering.sh</code> runs in CI, so the boundary doesn't depend on review memory.</p>
       </div>
       <div class="row" data-reveal>
         <div class="k">Real typesetting</div>
-        <p>Shaped advances against real font metrics, Knuth-Plass optimal breaks, incremental pagination with p95 reflow under 8 ms.</p>
+        <p>Shaped advances against real font metrics, Knuth-Plass optimal breaks, incremental pagination with p95 reflow under 8 ms (benchmarked in-repo).</p>
       </div>
     </div>
   </section>
 
-  <!-- ══ opening soon ══ -->
+  <!-- ══ availability ══ -->
   <section class="wrap" aria-labelledby="waitlist-h">
-    <h2 id="waitlist-h"><span class="sec-no" aria-hidden="true">§ 04</span> Opening soon</h2>
+    <h2 id="waitlist-h"><span class="sec-no" aria-hidden="true">§ 04</span> What you can use today</h2>
     <p>
-      The engine is in private preview while the foundations — XLSX groundwork and the
-      collaborative layer — hold. When the site opens, this section becomes a one-field
-      waitlist; until then, write to
-      <a href="mailto:preview@quireoffice.dev">preview@quireoffice.dev</a> if you want
-      early access to the playground build.
+      The engine is licensed Apache-2.0 and the repository is currently private: the code,
+      the 399-file corpus and the CI gates exist and run, but a public checkout is pending
+      the release decision — write to
+      <a href="mailto:preview@quireoffice.dev">preview@quireoffice.dev</a> for access.
+      The browser playground is being wired to the wasm build: the drop zone exists but
+      doesn't render yet, and that page says so. A hosted editor is further out — XLSX
+      groundwork and the collaborative layer come first.
     </p>
   </section>
 </div>
@@ -422,10 +428,10 @@ if (rail && stages.length) {
 const galley = $('#galley'), brkCount = $('#brkCount');
 if (galley) {
   const WORDS = (
-    '無損不是承諾而是結構：一個 Office 檔案是數千個宣告的容器，引擎未觸碰的每一個宣告、' +
+    '一個 Office 檔案是數千個宣告的容器：引擎未觸碰的每一個宣告、' +
     '每一條 ZIP entry、每一個位元組，都會在寫回時原樣出現。The browser tab and the desktop share one ' +
-    'layout core: the same shaped advances, the same optimal breaks, the same display list. Nothing is ' +
-    'approximated twice, so nothing can disagree. Every line you are reading was proven, not guessed.').split(/\s+/);
+    'layout core: the same shaped advances, the same optimal breaks, the same display list. One keystroke ' +
+    'reflows the dirty interval, not the whole document.').split(/\s+/);
   const N = WORDS.length, lines = [];
   let start = 0;
   const ends = [0.16, 0.33, 0.52, 0.70, 0.87, 1].map(f => Math.round(f * (N - 1)));
@@ -436,7 +442,7 @@ if (galley) {
     l.className = 'line';
     l.style.opacity = RM ? '1' : '0.16';
     l.innerHTML = words.join(' ') +
-      '<span class="brk">¶</span><span class="badness">badness ' + (i % 3 ? i * 7 + 3 : 0) + '</span>';
+      '<span class="brk">¶</span><span class="badness">break</span>';
     galley.appendChild(l); lines.push(l); start = end + 1;
   });
   if (RM) {
@@ -469,8 +475,11 @@ if (labText && lw && ls && lmeta) {
   const reflow = () => {
     clearTimeout(timer);
     timer = window.setTimeout(() => {
+      const t0 = performance.now();
       const lh = parseFloat(getComputedStyle(labText).lineHeight) || 30;
-      lmeta.innerHTML = 'lines · <b>' + Math.round(labText.offsetHeight / lh) + '</b> · reflow <b>0.3 ms</b>';
+      const lines = Math.round(labText.offsetHeight / lh);
+      const ms = (performance.now() - t0).toFixed(1);
+      lmeta.innerHTML = 'lines · <b>' + lines + '</b> · relayout read <b>' + ms + ' ms</b>';
     }, 240);
   };
   lw.addEventListener('input', () => { labText.style.width = lw.value + '%'; reflow(); });

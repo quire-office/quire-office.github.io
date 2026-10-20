@@ -3,16 +3,17 @@ import Base from '../layouts/Base.astro';
 ---
 <Base
   title="Roadmap — Quire"
-  description="Quire is an Office-format engine family, not a single-format project. Where DOCX is today, and how XLSX and PPTX join as sibling crates on the same lossless core."
+  description="Where DOCX stands today, XLSX in progress on the same container/lossless layer, and PPTX after that. Each format is a sibling crate in one repository."
   path="/roadmap"
 >
   <section class="hero">
     <div class="wrap">
       <p class="eyebrow"><span class="tick">●</span> Roadmap</p>
-      <h1>An engine family, not a single-format project.</h1>
+      <h1>Three formats, one core.</h1>
       <p class="sub">
-        Each new format is a sibling crate on the same core rather than a fork, and the
-        layering gate is what keeps that promise cheap.
+        DOCX is what works today. XLSX and PPTX will be additional crates in this same
+        repository, reusing the container and round-trip layer — each with the layout
+        model its format needs.
       </p>
     </div>
   </section>
@@ -22,34 +23,35 @@ import Base from '../layouts/Base.astro';
       <span class="tag now">Now</span>
       <h2>DOCX</h2>
       <ul>
-        <li>Lossless round-trip: hand-rolled ZIP writer copies untouched entries byte-for-byte, ZIP64 and unknown extensions included — 399/399 corpus files in CI.</li>
+        <li>Lossless round-trip: the ZIP layer copies untouched entries byte-for-byte, ZIP64 and unknown extensions included — 399/399 corpus files in CI.</li>
         <li>Line breaking and pagination: Knuth-Plass optimal breaks, UAX#14 rules, CJK anywhere / Latin at whitespace.</li>
         <li>Page geometry from <code>sectPr</code>, real font-metric shaping, golden break-point snapshots.</li>
-        <li>Incremental pagination with budgeted background reflow; incremental rebuilds are provably identical to full rebuilds.</li>
+        <li>Incremental pagination with budgeted background reflow; incremental results are checked against full rebuilds.</li>
+        <li>Tables with cross-page slicing, headers/footers with field substitution, style cascade, image placeholders and floating images, forced page breaks.</li>
       </ul>
     </article>
 
     <article class="phase">
-      <span class="tag">Next · Phase 3–4</span>
-      <h2>DOCX depth, then collaboration</h2>
-      <ul>
-        <li>Tables, headers/footers, columns and tracked changes — sequenced by the corpus green-light rate, not by a feature calendar.</li>
-        <li>CRDT collaborative layer behind an adapter slot, so the collaboration dependency loads only when a document is actually shared.</li>
-      </ul>
-    </article>
-
-    <article class="phase">
-      <span class="tag">Then</span>
+      <span class="tag now">In progress</span>
       <h2>XLSX</h2>
       <ul>
-        <li>A sibling format crate on the same OPC container and lossless discipline.</li>
-        <li>Workbook model, formula engine, and a sheet render list — a grid layout model, deliberately its own rather than a reuse of DOCX flow.</li>
-        <li>Charts follow the grid, not the other way around.</li>
+        <li>A sibling crate (<code>core/xlsx</code>) on the same OPC container and round-trip gates — an 80-file XLSX corpus with per-file licensing is already collected.</li>
+        <li>First the workbook model and cell parsing on the lossless layer; the formula engine follows.</li>
+        <li>Charts come after the grid works, not before.</li>
       </ul>
     </article>
 
     <article class="phase">
-      <span class="tag">Then</span>
+      <span class="tag">Next</span>
+      <h2>DOCX depth, then collaboration</h2>
+      <ul>
+        <li>Tracked changes, columns (<code>w:cols</code>) and the remaining rendering gaps — each item is picked from the failure clusters the corpus comparison ranks, not from a feature calendar.</li>
+        <li>The CRDT collaborative layer sits behind an adapter slot, so the collaboration dependency loads only when a document is actually shared.</li>
+      </ul>
+    </article>
+
+    <article class="phase">
+      <span class="tag">Later</span>
       <h2>PPTX</h2>
       <ul>
         <li>Slide and shape model reusing the layout and shaping crates, with a canvas layout model of its own.</li>
@@ -59,12 +61,11 @@ import Base from '../layouts/Base.astro';
 
     <article class="phase">
       <span class="tag">Structure</span>
-      <h2>Shell split, when it earns its keep</h2>
+      <h2>Shell split, when it makes sense</h2>
       <p>
-        Shells stay in-tree until one ships releases of its own, its licence diverges, or
-        its contributor community diverges. Until then the layering gate keeps the
-        separation clean, so splitting later is a move of directories rather than a
-        rewrite.
+        The shells stay in this repo until one ships its own releases, its licence
+        diverges, or its contributor base diverges. Until then the layering script keeps
+        the boundary clean, so a later split is moving directories rather than rewriting.
       </p>
     </article>
   </section>
