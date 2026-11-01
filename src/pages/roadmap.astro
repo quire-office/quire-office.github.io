@@ -109,6 +109,19 @@ import '../styles/roadmap.css';
       <li class="tl-item tl-planned" data-reveal>
         <div class="tl-marker" aria-hidden="true"><span class="tl-dot"></span></div>
         <article class="tl-card">
+          <p class="tl-meta"><span class="tl-status">Planned</span><span class="tl-phase">Products</span></p>
+          <h2>The product line on the engine</h2>
+          <ul class="tl-list">
+            <li><strong>Browser editor</strong> (<code>quire-editor</code>) — the playground plus the editing API: in-tab mutations with the lossless save chain. The editing API is the next engine milestone and gates everything below.</li>
+            <li><strong>Desktop app</strong> (<code>quire-desktop</code>, Tauri v2) — the native Rust core behind a thin Tauri shell; no wasm detour, installers for Windows/macOS/Linux.</li>
+            <li><strong>Collaboration &amp; storage server</strong> (<code>quire-server</code>) — self-hostable, Docker-first single image (SQLite + local disk today, pluggable storage layer), CRDT sync on the same loro backend the browser's collab chunk uses. Apache-2.0 like everything else.</li>
+          </ul>
+        </article>
+      </li>
+
+      <li class="tl-item tl-planned" data-reveal>
+        <div class="tl-marker" aria-hidden="true"><span class="tl-dot"></span></div>
+        <article class="tl-card">
           <p class="tl-meta"><span class="tl-status">Planned</span><span class="tl-phase">Structure</span></p>
           <h2>Shell split, when it makes sense</h2>
           <p class="tl-note">
