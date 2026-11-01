@@ -17,12 +17,13 @@ const ALLOW = [
   { what: 'sitemap schema namespaces', re: /https?:\/\/(www\.)?sitemaps\.org|https?:\/\/www\.google\.com\/schemas\//g },
   // GSAP banner-comment license URLs: self-hosted npm bundle, comment metadata only (no fetch)
   { what: 'GSAP license text', re: /https?:\/\/gsap\.com(\/standard-license)?/g },
-  // public GitHub org root + public site repos (engine repo stays FORBIDDEN below)
+  // public GitHub org root + public site repos
   { what: 'GitHub org page (public)', re: /https:\/\/github\.com\/quire-office(\/(www|docs|\.github))?\/?(?=["')\s<]|$)/g },
+  // engine repo 已轉公開（2026-11-01）：roadmap 的 done 項挂 commit 佐證連結
+  { what: 'engine repo commit/release links (public)', re: /https:\/\/github\.com\/quire-office\/quire\/(commit|releases)\/[A-Za-z0-9._-]+/g },
 ];
 
 const FORBIDDEN = [
-  { why: 'private engine repo would 404', re: /github\.com\/quire-office\/quire(?![-/a-z0-9.-])/g },
   { why: 'CDN dependency (fonts)', re: /fonts\.(googleapis|gstatic)\.com/g },
   { why: 'CDN dependency (js)', re: /cdn\.(jsdelivr|cloudflare)\.com|unpkg\.com/g },
 ];

@@ -1,0 +1,263 @@
+/* Roadmap 垂直時間軸：左側主軸、三態節點、右移內容卡。
+   全部規則收在 .roadmap 之下，避免影響首頁與 playground。 */
+
+.roadmap {
+  --tl-axis: 1.05rem;
+  --tl-marker: 2.1rem;
+  --tl-gap: clamp(0.9rem, 2.4vw, 1.9rem);
+  padding-bottom: clamp(2rem, 6vw, 4rem);
+}
+
+.roadmap .timeline {
+  position: relative;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+/* 主軸線：貫穿所有節點，終點收在最後一張卡的中段 */
+.roadmap .timeline::before {
+  content: "";
+  position: absolute;
+  top: 0.7rem;
+  bottom: 1.2rem;
+  left: var(--tl-axis);
+  width: 1px;
+  background: var(--rule);
+}
+
+.roadmap .tl-item {
+  position: relative;
+  display: grid;
+  grid-template-columns: var(--tl-marker) minmax(0, 1fr);
+  column-gap: var(--tl-gap);
+  padding-bottom: clamp(1.6rem, 4vw, 2.6rem);
+}
+
+.roadmap .tl-item:last-child {
+  padding-bottom: 0;
+}
+
+.roadmap .tl-marker {
+  position: relative;
+  display: flex;
+  justify-content: center;
+  padding-top: 0.55rem;
+}
+
+/* 節點幾何：一律用 CSS 圓形，不用 emoji 當狀態圖示 */
+.roadmap .tl-dot {
+  position: relative;
+  z-index: 1;
+  display: block;
+  width: 0.82rem;
+  height: 0.82rem;
+  border: 1.5px solid var(--fg);
+  border-radius: 50%;
+  background: var(--bg);
+}
+
+/* 已完工：實心節點 */
+.roadmap .tl-done .tl-dot {
+  border-color: var(--vermilion);
+  background: var(--vermilion);
+}
+
+/* 進行中：半填節點 */
+.roadmap .tl-doing .tl-dot {
+  border-color: var(--vermilion);
+  background: var(--bg);
+}
+
+.roadmap .tl-doing .tl-dot::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background: var(--vermilion);
+  clip-path: inset(0 50% 0 0);
+}
+
+/* 進行中：脈動光圈，僅在使用者未要求減少動效時播放 */
+@media (prefers-reduced-motion: no-preference) {
+  .roadmap .tl-doing .tl-dot::after {
+    content: "";
+    position: absolute;
+    inset: -0.42rem;
+    border: 1px solid var(--vermilion);
+    border-radius: 50%;
+    animation: tl-pulse 2.4s ease-out infinite;
+  }
+}
+
+@keyframes tl-pulse {
+  0% {
+    transform: scale(0.7);
+    opacity: 0.85;
+  }
+  70% {
+    transform: scale(1.5);
+    opacity: 0;
+  }
+  100% {
+    transform: scale(1.5);
+    opacity: 0;
+  }
+}
+
+/* 規劃中：空心節點 */
+.roadmap .tl-planned .tl-dot {
+  border-color: var(--muted);
+  background: var(--bg);
+}
+
+.roadmap .tl-card {
+  min-width: 0;
+  border: 1px solid var(--rule);
+  background: var(--panel);
+  padding: clamp(1.15rem, 2.4vw, 1.8rem) clamp(1.1rem, 2.6vw, 1.8rem);
+}
+
+.roadmap .tl-meta {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 0.55rem;
+  margin: 0 0 0.7rem;
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.roadmap .tl-status {
+  color: var(--muted);
+  border: 1px solid var(--rule);
+  padding: 0.18rem 0.45rem;
+}
+
+.roadmap .tl-done .tl-status,
+.roadmap .tl-doing .tl-status {
+  color: var(--accent-text);
+  border-color: var(--accent-text);
+}
+
+.roadmap .tl-phase {
+  color: var(--muted);
+}
+
+.roadmap .tl-card h2 {
+  margin: 0 0 0.45em;
+  font-size: clamp(1.3rem, 1.1rem + 0.8vw, 1.7rem);
+}
+
+.roadmap .tl-list {
+  margin: 0;
+  padding-left: 1.15rem;
+  max-width: var(--measure);
+}
+
+.roadmap .tl-list li {
+  margin-bottom: 0.45em;
+}
+
+.roadmap .tl-list li:last-child {
+  margin-bottom: 0;
+}
+
+.roadmap .tl-note {
+  margin: 0;
+  max-width: var(--measure);
+}
+
+/* 完成紀錄：只放能對到本地 quire repo 的 commit；查不到就整段不出現 */
+.roadmap .tl-records {
+  margin-top: 1.1rem;
+  border-top: 1px solid var(--rule);
+  padding-top: 0.9rem;
+}
+
+.roadmap .tl-records-label {
+  margin: 0 0 0.55rem;
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.roadmap .tl-record-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 0.35rem;
+}
+
+.roadmap .tl-record-list a {
+  font-size: 0.86rem;
+  text-decoration-color: var(--rule);
+  overflow-wrap: anywhere;
+}
+
+.roadmap .tl-hash {
+  font-family: var(--font-mono);
+  font-size: 0.8em;
+  color: var(--accent-text);
+  margin-right: 0.5em;
+}
+
+/* 窄屏：主軸貼齊內容左緣、節點與字級縮小，卡面不得撐破 viewport */
+@media (max-width: 640px) {
+  .roadmap {
+    --tl-axis: 0.62rem;
+    --tl-marker: 1.24rem;
+    --tl-gap: 0.7rem;
+  }
+
+  .roadmap .timeline::before {
+    top: 0.55rem;
+    bottom: 0.9rem;
+  }
+
+  .roadmap .tl-marker {
+    padding-top: 0.45rem;
+  }
+
+  .roadmap .tl-dot {
+    width: 0.66rem;
+    height: 0.66rem;
+    border-width: 1px;
+  }
+
+  .roadmap .tl-card {
+    padding: 0.95rem 0.9rem 1rem;
+  }
+
+  .roadmap .tl-meta {
+    gap: 0.4rem;
+    margin-bottom: 0.5rem;
+    font-size: 0.64rem;
+  }
+
+  .roadmap .tl-card h2 {
+    font-size: 1.18rem;
+  }
+
+  .roadmap .tl-list {
+    padding-left: 1rem;
+    font-size: 0.95rem;
+  }
+
+  .roadmap .tl-note {
+    font-size: 0.95rem;
+  }
+
+  .roadmap .tl-records-label {
+    font-size: 0.62rem;
+  }
+
+  .roadmap .tl-record-list a {
+    font-size: 0.78rem;
+  }
+}

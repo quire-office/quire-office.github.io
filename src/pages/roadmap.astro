@@ -1,5 +1,6 @@
 ---
 import Base from '../layouts/Base.astro';
+import '../styles/roadmap.css';
 ---
 <Base
   title="Roadmap — Quire"
@@ -18,55 +19,92 @@ import Base from '../layouts/Base.astro';
     </div>
   </section>
 
-  <section class="wrap">
-    <article class="phase">
-      <span class="tag now">Now</span>
-      <h2>DOCX</h2>
-      <ul>
-        <li>Lossless round-trip: the ZIP layer copies untouched entries byte-for-byte, ZIP64 and unknown extensions included — 399/399 corpus files in CI.</li>
-        <li>Line breaking and pagination: Knuth-Plass optimal breaks, UAX#14 rules, CJK anywhere / Latin at whitespace.</li>
-        <li>Page geometry from <code>sectPr</code>, real font-metric shaping, golden break-point snapshots.</li>
-        <li>Incremental pagination with budgeted background reflow; incremental results are checked against full rebuilds.</li>
-        <li>Tables with cross-page slicing, headers/footers with field substitution, style cascade, image placeholders and floating images, forced page breaks.</li>
-      </ul>
-    </article>
+  <section class="wrap roadmap">
+    <ol class="timeline" aria-label="Roadmap timeline">
+      <li class="tl-item tl-done" data-reveal>
+        <div class="tl-marker" aria-hidden="true"><span class="tl-dot"></span></div>
+        <article class="tl-card">
+          <p class="tl-meta"><span class="tl-status">Done</span><span class="tl-phase">DOCX</span></p>
+          <h2>DOCX</h2>
+          <ul class="tl-list">
+            <li>Lossless round-trip: the ZIP layer copies untouched entries byte-for-byte, ZIP64 and unknown extensions included — 399/399 corpus files in CI.</li>
+            <li>Line breaking and pagination: Knuth-Plass optimal breaks, UAX#14 rules, CJK anywhere / Latin at whitespace.</li>
+            <li>Page geometry from <code>sectPr</code>, real font-metric shaping, golden break-point snapshots.</li>
+            <li>Incremental pagination with budgeted background reflow; incremental results are checked against full rebuilds.</li>
+            <li>Tables with cross-page slicing, headers/footers with field substitution, style cascade, image placeholders and floating images, forced page breaks.</li>
+          </ul>
+          <div class="tl-records">
+            <p class="tl-records-label">Completion records</p>
+            <ul class="tl-record-list">
+              <li><a href="https://github.com/quire-office/quire/commit/dbc63c9"><span class="tl-hash">dbc63c9</span>Engine foundation — lossless ZIP layer, Knuth-Plass + UAX#14 line breaking, font-metric shaping, incremental reflow</a></li>
+              <li><a href="https://github.com/quire-office/quire/commit/8d3f401"><span class="tl-hash">8d3f401</span>400-file DOCX corpus and round-trip gate (399/399 byte-identical in CI)</a></li>
+              <li><a href="https://github.com/quire-office/quire/commit/9467208"><span class="tl-hash">9467208</span>Cross-page table slicing with repeated headers</a></li>
+              <li><a href="https://github.com/quire-office/quire/commit/cfcf776"><span class="tl-hash">cfcf776</span>Headers/footers, section inheritance and PAGE field substitution</a></li>
+              <li><a href="https://github.com/quire-office/quire/commit/3ce00ed"><span class="tl-hash">3ce00ed</span>Style cascade, per-paragraph measure and tab stops</a></li>
+              <li><a href="https://github.com/quire-office/quire/commit/4c9440c"><span class="tl-hash">4c9440c</span>Forced page breaks through the pagination chain</a></li>
+              <li><a href="https://github.com/quire-office/quire/commit/162322f"><span class="tl-hash">162322f</span>Image geometry placeholders and floating anchors</a></li>
+              <li><a href="https://github.com/quire-office/quire/commit/7ab8604"><span class="tl-hash">7ab8604</span>Floating VML shapes with absolute page positioning</a></li>
+            </ul>
+          </div>
+        </article>
+      </li>
 
-    <article class="phase">
-      <span class="tag now">In progress</span>
-      <h2>XLSX</h2>
-      <ul>
-        <li>A sibling crate (<code>core/xlsx</code>) on the same OPC container and round-trip gates — an 80-file XLSX corpus with per-file licensing is already collected.</li>
-        <li>First the workbook model and cell parsing on the lossless layer; the formula engine follows.</li>
-        <li>Charts come after the grid works, not before.</li>
-      </ul>
-    </article>
+      <li class="tl-item tl-doing" data-reveal>
+        <div class="tl-marker" aria-hidden="true"><span class="tl-dot"></span></div>
+        <article class="tl-card">
+          <p class="tl-meta"><span class="tl-status">In progress</span><span class="tl-phase">XLSX</span></p>
+          <h2>XLSX</h2>
+          <ul class="tl-list">
+            <li>A sibling crate (<code>core/xlsx</code>) on the same OPC container and round-trip gates — an 80-file XLSX corpus with per-file licensing is already collected.</li>
+            <li>First the workbook model and cell parsing on the lossless layer; the formula engine follows.</li>
+            <li>Charts come after the grid works, not before.</li>
+          </ul>
+          <div class="tl-records">
+            <p class="tl-records-label">Progress records</p>
+            <ul class="tl-record-list">
+              <li><a href="https://github.com/quire-office/quire/commit/3ea86a1"><span class="tl-hash">3ea86a1</span>80-file XLSX corpus with licensing and verification gate</a></li>
+              <li><a href="https://github.com/quire-office/quire/commit/5ffcde0"><span class="tl-hash">5ffcde0</span><code>core/xlsx</code> crate, 80/80 byte-identical round-trip, minimal workbook read</a></li>
+            </ul>
+          </div>
+        </article>
+      </li>
 
-    <article class="phase">
-      <span class="tag">Next</span>
-      <h2>DOCX depth, then collaboration</h2>
-      <ul>
-        <li>Tracked changes, columns (<code>w:cols</code>) and the remaining rendering gaps — each item is picked from the failure clusters the corpus comparison ranks, not from a feature calendar.</li>
-        <li>The CRDT collaborative layer sits behind an adapter slot, so the collaboration dependency loads only when a document is actually shared.</li>
-      </ul>
-    </article>
+      <li class="tl-item tl-planned" data-reveal>
+        <div class="tl-marker" aria-hidden="true"><span class="tl-dot"></span></div>
+        <article class="tl-card">
+          <p class="tl-meta"><span class="tl-status">Planned</span><span class="tl-phase">DOCX depth &amp; collaboration</span></p>
+          <h2>DOCX depth, then collaboration</h2>
+          <ul class="tl-list">
+            <li>Tracked changes, columns (<code>w:cols</code>) and the remaining rendering gaps — each item is picked from the failure clusters the corpus comparison ranks, not from a feature calendar.</li>
+            <li>The CRDT collaborative layer sits behind an adapter slot, so the collaboration dependency loads only when a document is actually shared.</li>
+          </ul>
+        </article>
+      </li>
 
-    <article class="phase">
-      <span class="tag">Later</span>
-      <h2>PPTX</h2>
-      <ul>
-        <li>Slide and shape model reusing the layout and shaping crates, with a canvas layout model of its own.</li>
-        <li>A presentation render list on the same display-list contract the native and browser shells already consume.</li>
-      </ul>
-    </article>
+      <li class="tl-item tl-planned" data-reveal>
+        <div class="tl-marker" aria-hidden="true"><span class="tl-dot"></span></div>
+        <article class="tl-card">
+          <p class="tl-meta"><span class="tl-status">Planned</span><span class="tl-phase">PPTX</span></p>
+          <h2>PPTX</h2>
+          <ul class="tl-list">
+            <li>Slide and shape model reusing the layout and shaping crates, with a canvas layout model of its own.</li>
+            <li>A presentation render list on the same display-list contract the native and browser shells already consume.</li>
+          </ul>
+        </article>
+      </li>
 
-    <article class="phase">
-      <span class="tag">Structure</span>
-      <h2>Shell split, when it makes sense</h2>
-      <p>
-        The shells stay in this repo until one ships its own releases, its licence
-        diverges, or its contributor base diverges. Until then the layering script keeps
-        the boundary clean, so a later split is moving directories rather than rewriting.
-      </p>
-    </article>
+      <li class="tl-item tl-planned" data-reveal>
+        <div class="tl-marker" aria-hidden="true"><span class="tl-dot"></span></div>
+        <article class="tl-card">
+          <p class="tl-meta"><span class="tl-status">Planned</span><span class="tl-phase">Structure</span></p>
+          <h2>Shell split, when it makes sense</h2>
+          <p class="tl-note">
+            The shells stay in this repo until one ships its own releases, its licence
+            diverges, or its contributor base diverges. Until then the layering script keeps
+            the boundary clean, so a later split is moving directories rather than rewriting.
+          </p>
+        </article>
+      </li>
+    </ol>
   </section>
 </Base>
