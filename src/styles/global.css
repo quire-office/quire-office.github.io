@@ -57,6 +57,11 @@ body {
   font-size: 1.0625rem;
   line-height: 1.65;
   text-rendering: optimizeLegibility;
+  /* 全站 CJK 折行禁則：行首禁「、。」行尾禁「（「」」，中文段落不得把標點鋸開；
+     overflow-wrap: break-word 兜底超長字串（URL／代號）不撐破容器 */
+  word-break: normal;
+  overflow-wrap: break-word;
+  line-break: strict;
 }
 
 /* --- typography ------------------------------------------------------- */
@@ -116,6 +121,11 @@ code,
 kbd {
   font-family: var(--font-mono);
   font-size: 0.86em;
+  /* 行內程式字：短 token（如 .docx、sectPr）不拆行；真會撐爆的長檔名
+     （如超長分支名）依 overflow-wrap 在連字號／底字元處折行，不得撕裂版面 */
+  white-space: nowrap;
+  overflow-wrap: anywhere;
+  word-break: normal;
 }
 
 code {

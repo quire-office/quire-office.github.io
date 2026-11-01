@@ -79,6 +79,16 @@ async function loadWasm() {
 
     const res = await fetch(wasmUrl);
     if (!res.ok) {
+      if (res.status === 404) {
+        // 缺資產（佔位模式構建）：給出具體補救指示，而非當成一般網路錯誤
+        showError(
+          "引擎資產缺失",
+          "此站點建置缺少 WASM 引擎資產（/playground/quire_web_bg.wasm 404）。\n" +
+            "引擎二進位依規定不進網頁 repo，請在本 repo 根目錄執行「npm run fetch:wasm」\n" +
+            "（自 GitHub release 下載，失敗時自動降級本機建置），完成後重新 npm run build。"
+        );
+        return;
+      }
       throw new Error(`HTTP ${res.status} ${res.statusText}`);
     }
 

@@ -6,6 +6,8 @@
   "type": "module",
   "scripts": {
     "dev": "astro dev",
+    "fetch:wasm": "node scripts/fetch-wasm.mjs",
+    "prebuild": "node scripts/fetch-wasm.mjs || true",
     "build": "astro build",
     "preview": "astro preview",
     "check:local": "node scripts/check-local-assets.mjs"

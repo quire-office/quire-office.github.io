@@ -1,0 +1,19 @@
+{
+  "$schema": "playground 頁面 WASM 引擎資產清單（進 git 的唯一信任來源）",
+  "version": "0.1.0-beta.1",
+  "release_url_template": "https://github.com/quire-office/quire/releases/download/v{version}/{file}",
+  "local_fallback_dir": "/home/jerry/projects/quire/shells/web/pkg/",
+  "target_dir": "public/playground/",
+  "assets": [
+    {
+      "file": "quire_web_bg.wasm",
+      "sha256": "c8bc0dbcdf743b6a40a713bafd178e89fd37d17904a9de43a557470ffdcf2200",
+      "note": "Rust 排版核心 + shells/web 介接層之 wasm-bindgen 產物（raw 約 1.5 MB，gzip 後約 910 KB）"
+    },
+    {
+      "file": "quire_web.js",
+      "sha256": "7cafef87c3bc331e8333b75cdd6a98c2761c8f38647653051442d2c4280311d2",
+      "note": "對應的 wasm-bindgen 膠水層（ESM）"
+    }
+  ]
+}

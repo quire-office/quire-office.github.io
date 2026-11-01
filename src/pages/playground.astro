@@ -139,6 +139,49 @@ import Base from '../layouts/Base.astro';
     </div>
   </section>
 
+  <!-- 缺資產守門：quire_web.js 缺檔時模組載入直接失敗、重磅模組不會執行，
+       故用獨立 inline 腳本偵測資產 404 並顯示具體補救指示（不與引擎錯誤混淆） -->
+  <script is:inline>
+    (function () {
+      "use strict";
+      var MISSING_HINT =
+        "此站點建置缺少 WASM 引擎資產（public/playground/ 下的 quire_web_bg.wasm / quire_web.js）。\n" +
+        "引擎二進位不進網頁 repo，需 build 前先取得：在本 repo 根目錄執行\n" +
+        "「npm run fetch:wasm」，腳本會自 GitHub release 下載（失敗時自動降級本機建置），\n" +
+        "完成後重新 npm run build && npm run preview。詳見 public/playground/MISSING-ASSETS.md 與 README。";
+      function indicateMissingAssets(which) {
+        var chip = document.getElementById("wasm-status-chip");
+        var desc = document.getElementById("status-desc");
+        var panel = document.getElementById("error-panel");
+        var detail = document.getElementById("error-detail");
+        var type = document.getElementById("error-type");
+        if (chip) {
+          chip.textContent = "缺資產 · 引擎未就緒";
+          chip.className = "chip chip-error";
+        }
+        if (desc) desc.textContent = "WASM 引擎資產缺失（" + which + " 404），無法啟動渲染。";
+        if (type) type.textContent = "引擎資產缺失";
+        if (detail) detail.textContent = MISSING_HINT;
+        if (panel) panel.hidden = false;
+        var wrap = document.getElementById("progress-wrap");
+        if (wrap) wrap.hidden = true;
+      }
+      function check(a, b) {
+        fetch("/playground/" + a, { method: "HEAD" })
+          .then(function (r1) {
+            if (r1.status !== 404) return;
+            fetch("/playground/" + b, { method: "HEAD" }).then(function (r2) {
+              var bad = r1.status === 404 ? a : r2.status === 404 ? b : null;
+              if (bad) indicateMissingAssets(bad);
+            });
+          })
+          .catch(function () {}); // 網路層失敗交由引擎模組自身的錯誤面板處理
+      }
+      window.addEventListener("load", function () {
+        setTimeout(function () { check("quire_web_bg.wasm", "quire_web.js"); }, 400);
+      });
+    })();
+  </script>
   <!-- 引入 Playground 模組化驅動腳本 -->
   <script type="module" src="/playground/playground.js"></script>
 </Base>
@@ -152,7 +195,7 @@ import Base from '../layouts/Base.astro';
     border-left: 2px solid var(--rule);
     padding-left: 0.8rem;
     margin-top: 1rem;
-    line-height: 1.5;
+    line-height: 1.6;
   }
 
   .chip-sm {
@@ -164,6 +207,26 @@ import Base from '../layouts/Base.astro';
     padding: 0.1rem 0.4rem;
     margin-right: 0.4rem;
     vertical-align: middle;
+  }
+
+  /* 中文跑版修正：dropzone 訊息區塊一律左對齊＋行距 1.6 起，
+     不得出現「預/覽」式標點鋸字或 URL 反引號撕裂整段 */
+  .dropzone .dz-title,
+  .dropzone .dz-sub,
+  .dropzone .privacy-note {
+    text-align: left;
+    line-height: 1.6;
+    word-break: normal;
+    overflow-wrap: break-word;
+    line-break: strict;
+  }
+
+  .dropzone .dz-sub {
+    margin-inline: 0 auto; /* 區塊靠左收窄，不再整段偏右飄 */
+  }
+
+  .dropzone .progress-wrap {
+    margin-left: 0;
   }
 
   .dropzone {
@@ -217,6 +280,11 @@ import Base from '../layouts/Base.astro';
     font-size: 0.78rem;
     color: var(--muted);
     margin-top: 1.2rem;
+    /* 行內截圖實證：mono＋中文混排最易鋸行——左對齊＋行距 1.6＋禁則化折行 */
+    line-height: 1.7;
+    word-break: normal;
+    overflow-wrap: anywhere; /* 允許長檔名/URL 折行，但絕不撐破容器 */
+    line-break: strict;
   }
 
   .privacy-note strong {
@@ -254,9 +322,13 @@ import Base from '../layouts/Base.astro';
     font-family: var(--font-mono);
     font-size: 0.9rem;
     color: #c92a2a;
-    line-height: 1.5;
+    line-height: 1.6;
     margin-bottom: 0.6rem;
-    word-break: break-all;
+    /* 原 word-break: break-all 會把 URL/檔名從任意字元撕行；改 anywhere 保留
+       長字串可折行的能力，僅在確實會溢出時才斷，正常中文不鋸字 */
+    word-break: normal;
+    overflow-wrap: anywhere;
+    white-space: pre-line; /* 引擎指示訊息保留 \n 換行，閱讀性優先 */
   }
 
   .error-hint {
@@ -313,6 +385,19 @@ import Base from '../layouts/Base.astro';
     color: var(--muted);
   }
 
+  /* 截圖實證：「（22.6 KB)，全篇共 11 頁。可在下方翻頁預 覽。」被右對齊＋
+     mono 折行鋸開——改左對齊、禁則化折行、行距 1.6，允許在必要時折成兩行 */
+  .doc-meta {
+    display: inline-block;
+    text-align: left;
+    line-height: 1.6;
+    white-space: normal;
+    word-break: normal;
+    overflow-wrap: anywhere;
+    line-break: strict;
+    max-width: 32rem;
+  }
+
   .canvas-viewport {
     background: #2a2a2a;
     padding: 2rem 1rem;
@@ -351,20 +436,50 @@ import Base from '../layouts/Base.astro';
 
   .status-card p {
     font-size: 0.88rem;
-    line-height: 1.55;
+    line-height: 1.6;
     color: var(--muted);
     margin: 0;
+    word-break: normal;
+    overflow-wrap: break-word;
+    line-break: strict;
   }
 
   .limitations-list {
     margin: 0;
     padding-left: 1.1rem;
     font-size: 0.85rem;
-    line-height: 1.55;
+    line-height: 1.6;
     color: var(--muted);
+    word-break: normal;
+    overflow-wrap: break-word;
+    line-break: strict;
   }
 
   .limitations-list li {
     margin-bottom: 0.35rem;
+  }
+
+  /* 手機窄屏（≤640px）：mixed mono/CJK 進一步確保不單字撐爆、不鋸字 */
+  @media (max-width: 640px) {
+    .dropzone .dz-title {
+      font-size: 1.15rem;
+    }
+
+    .dropzone .dz-sub,
+    .budget-callout,
+    .privacy-note {
+      font-size: 0.74rem;
+      overflow-wrap: anywhere;
+    }
+
+    .viewer-toolbar {
+      align-items: flex-start;
+    }
+
+    .toolbar-right,
+    .doc-meta {
+      text-align: left;
+      max-width: 100%;
+    }
   }
 </style>

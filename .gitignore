@@ -4,3 +4,10 @@ dist/
 _fontwork/dl/
 *.log
 .worktrees/
+
+# Playground WASM 引擎產物：一律經 npm run fetch:wasm 從 GitHub release（或本機
+# quire/shells/web/pkg/ 降級複製）取得，嚴禁把二進位提交進網頁 repo。
+public/playground/quire_web_bg.wasm
+public/playground/quire_web.js
+# 缺資產佔位說明檔（fetch 腳本兩條路徑皆失敗時自動產生）
+public/playground/MISSING-ASSETS.md
