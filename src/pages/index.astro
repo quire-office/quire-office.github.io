@@ -184,10 +184,16 @@ import '../styles/home.css';
         <h3>Canvas</h3>
         <p>Slide and shape model reusing the layout and shaping crates; its own presentation render list.</p>
       </article>
+      <article class="fmt" data-reveal>
+        <div class="fmt-tag"><span>ODF</span><span class="fmt-state">Planned</span></div>
+        <h3>Open</h3>
+        <p>ODT first, then ODS and ODP, on the same container and round-trip layer — mapped from the OASIS spec, not from DOCX.</p>
+      </article>
     </div>
     <p class="muted" style="font-size:0.95rem;">
-      Shared between the three: the OPC container handling and the byte-level round-trip
-      guarantees. Not shared: the layout model — DOCX flows, XLSX grids, PPTX places boxes.
+      Shared between them: the container handling and the byte-level round-trip
+      guarantees. Not shared: the layout model — DOCX flows, XLSX grids, PPTX places
+      boxes, ODT flows against the OASIS schema.
     </p>
   </section>
 

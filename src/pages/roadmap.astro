@@ -4,17 +4,17 @@ import '../styles/roadmap.css';
 ---
 <Base
   title="Roadmap — Quire"
-  description="Where DOCX stands today, XLSX in progress on the same container/lossless layer, and PPTX after that. Each format is a sibling crate in one repository."
+  description="Where DOCX stands today, XLSX in progress on the same container/lossless layer, then PPTX and the ODF family. Each format is a sibling crate in one repository."
   path="/roadmap"
 >
   <section class="hero">
     <div class="wrap">
       <p class="eyebrow"><span class="tick">●</span> Roadmap</p>
-      <h1>Three formats, one core.</h1>
+      <h1>Every office format, one core.</h1>
       <p class="sub">
-        DOCX is what works today. XLSX and PPTX will be additional crates in this same
-        repository, reusing the container and round-trip layer — each with the layout
-        model its format needs.
+        DOCX is what works today. XLSX, PPTX and the ODF family (ODT first) will be
+        additional crates in this same repository, reusing the container and round-trip
+        layer — each with the layout model its format needs.
       </p>
     </div>
   </section>
@@ -89,6 +89,19 @@ import '../styles/roadmap.css';
           <ul class="tl-list">
             <li>Slide and shape model reusing the layout and shaping crates, with a canvas layout model of its own.</li>
             <li>A presentation render list on the same display-list contract the native and browser shells already consume.</li>
+          </ul>
+        </article>
+      </li>
+
+      <li class="tl-item tl-planned" data-reveal>
+        <div class="tl-marker" aria-hidden="true"><span class="tl-dot"></span></div>
+        <article class="tl-card">
+          <p class="tl-meta"><span class="tl-status">Planned</span><span class="tl-phase">OpenDocument</span></p>
+          <h2>ODF family: ODT first</h2>
+          <ul class="tl-list">
+            <li>A <code>core/odf</code> sibling crate on the same lossless OPC-style container — <code>content.xml</code>, <code>styles.xml</code> and <code>meta.xml</code> parsed and replayed byte-for-byte exactly like the OOXML parts.</li>
+            <li>ODT (text) leads, with ODS and ODP following on the same core; each keeps only the layout model its format demands.</li>
+            <li>Honest scope: the container layer and the round-trip discipline carry over, the OOXML part model does not. <code>text:sect</code> and <code>office:styles</code> mean different things than <code>sectPr</code> and <code>w:styles</code>, so the mapping is written from the OASIS spec, not guessed from DOCX.</li>
           </ul>
         </article>
       </li>
