@@ -1,13 +1,13 @@
 {
   "$schema": "playground 頁面 WASM 引擎資產清單（進 git 的唯一信任來源）",
-  "version": "0.1.0-beta.1",
+  "version": "0.1.0-beta.2",
   "release_url_template": "https://github.com/quire-office/quire/releases/download/v{version}/{file}",
   "local_fallback_dir": "/home/jerry/projects/quire/shells/web/pkg/",
   "target_dir": "public/playground/",
   "assets": [
     {
       "file": "quire_web_bg.wasm",
-      "sha256": "890f089b87f1114b7910b32add4dc3e2a7288ea7b21c71a7313f29fbed23736d",
+      "sha256": "66584b4915ea7082fc51f4adb4057c920ba51b646a31690b454dd4a3355b742d",
       "note": "Rust 排版核心 + shells/web 介接層之 wasm-bindgen 產物（raw 約 1.5 MB，gzip 後約 910 KB）"
     },
     {
