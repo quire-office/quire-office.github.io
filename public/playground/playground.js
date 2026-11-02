@@ -315,13 +315,15 @@ async function handleFile(file) {
 
 // 註冊 UI 事件
 function setupUI() {
-  // 點擊 dropzone 觸發原生檔案選擇器
+  // 點擊 dropzone：dropzone 是 <label for="file-input">，滑鼠／觸控的點擊由
+  // label 的原生啟用行為直接開啟選擇器（手機瀏覽器唯一可靠路徑；JS .click()
+  // 對隱藏 input 在部分移動端会被攔截）。這裡只補兩個缺口：
+  // 1) isTrusted=false 的合成事件不會觸發 label 啟用行為 → 手動補 click；
+  // 2) 內部 <button>（翻頁鍵等）冒泡上来的點擊不得開選擇器。
   if (dropzone && fileInput) {
     dropzone.addEventListener("click", (e) => {
-      // 避免點擊內部按鈕或連結時重復觸發
-      if (e.target.tagName.toLowerCase() !== "button") {
-        fileInput.click();
-      }
+      if (e.target.closest("button")) return;
+      if (!e.isTrusted) fileInput.click();
     });
 
     fileInput.addEventListener("change", (e) => {

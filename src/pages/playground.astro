@@ -23,9 +23,16 @@ import Base from '../layouts/Base.astro';
   </section>
 
   <section class="wrap">
-    <!-- 拖放與選檔區域 -->
-    <div class="dropzone" id="dropzone" tabindex="0" role="button" aria-label="選取或拖曳 .docx 檔案進入此區域">
-      <input type="file" id="file-input" accept=".docx" style="display: none;" aria-hidden="true" />
+    <!-- 拖放與選檔區域：用 label 做觸發器——手機瀏覽器對隱藏 input 的
+         JS .click() 常被攔，label 的原生輕觸啟用是唯一全平台可靠路徑。
+         accept 必須帶 MIME：Android 檔案 App 依 MIME 過濾，只給 .docx
+         副檔名會導致選檔清單全灰（手機無法選檔的根因）。 -->
+    <label class="dropzone" id="dropzone" for="file-input">
+      <!-- 不可用 display:none：隱藏的 control 在桌面瀏覽器連 label 啟用一起失效，
+           改用視覺隱藏（保留 layout 與可啟用性），label 輕觸與 JS .click() 兩路都通 -->
+      <input type="file" id="file-input"
+             accept=".docx,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/zip"
+             class="dz-file" />
       <span class="chip" id="wasm-status-chip">載入中 · WASM 流式編譯</span>
       <p class="dz-title">拖放本機 <code>.docx</code> 檔案至此，或點擊選取檔案</p>
       <p class="dz-sub" id="status-desc">
@@ -40,7 +47,7 @@ import Base from '../layouts/Base.astro';
       <p class="privacy-note">
         <strong>純本機 File API 讀取：</strong>所有位元組皆在瀏覽器分頁內就地解析與排版，絕不上傳至任何伺服器。
       </p>
-    </div>
+    </label>
 
     <!-- 具體錯誤警示面板（預設隱藏） -->
     <div class="error-panel" id="error-panel" hidden role="alert">
@@ -238,6 +245,7 @@ import Base from '../layouts/Base.astro';
 
   .dropzone:hover,
   .dropzone:focus-visible,
+  .dropzone:focus-within,
   .dropzone.drag-over {
     border-color: var(--fg);
     background-color: var(--panel-hover, rgba(255, 255, 255, 0.04));

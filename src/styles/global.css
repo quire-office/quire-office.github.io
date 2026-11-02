@@ -689,11 +689,28 @@ html.js body.nav-open .site-scrim { opacity: 1; visibility: visible; }
 /* --- playground drop zone -------------------------------------------------------- */
 
 .dropzone {
+  position: relative; /* .dz-file 以 inset:0 铺滿此區，需錨定在 dropzone 本身 */
   border: 1px dashed var(--rule);
   background: var(--panel);
   padding: clamp(2.2rem, 6vw, 4rem) 1.5rem;
   text-align: center;
   margin-block: 1.6rem;
+  cursor: pointer; /* label 觸發器：手機與桌面都給出可點提示 */
+  display: block;
+}
+
+/* 檔案 input 採透明覆蓋式：铺滿整個 dropzone、opacity 0——使用者點（觸）到的
+   實際就是 input 本體，桌面與移動端都是瀏覽器原生路徑，不依賴 JS .click()
+   對隱藏 control 的放寬行為；拖曳事件照常冒泡到 dropzone 的 drag 監聽。 */
+.dz-file {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  cursor: pointer;
+  border: 0;
+  padding: 0;
 }
 
 .dropzone .dz-title {
