@@ -127,7 +127,12 @@ async function loadWasm() {
 
     if (progressWrap) progressWrap.hidden = true;
     if (statusChip) {
-      statusChip.textContent = "引擎就緒 · 純瀏覽器執行";
+      // 版本由烘焙在 chip 上的 data-engine-version 帶出（來源＝playground.assets.json，
+      // build 期烘焙；非執行期猜測）。缺屬性＝舊版烘焙，退回不顯示版本而非顯示錯的。
+      const ver = statusChip.dataset.engineVersion;
+      statusChip.textContent = ver
+        ? `引擎就緒 · ${ver} · 純瀏覽器執行`
+        : "引擎就緒 · 純瀏覽器執行";
       statusChip.className = "chip chip-ready";
     }
     if (statusDesc) {
