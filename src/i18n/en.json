@@ -254,5 +254,12 @@
   "home.foot.source": "Source code",
   "home.foot.bugs": "Bug tracker",
   "home.foot.license": "Apache-2.0 licensed · no telemetry",
-  "home.bytes.untouched": "untouched"
+  "home.bytes.untouched": "untouched",
+  "roadmap.odf.l4": "Now in flight: a 50-file ODT corpus with per-file licensing and a container-level survey; the <code>core/odf</code> crate lands after its red-light tests are picked from real files.",
+  "roadmap.odf.note": "Priority note: the word-family formats (ODT and legacy DOC) now precede PPTX — the editor should cover the most common document formats before presentations.",
+  "roadmap.doc.h2": "Legacy DOC (binary Word)",
+  "roadmap.doc.l1": "The pre-OOXML binary format lives in an OLE compound file, not OPC — its own parser lane, reusing the same layout and shaping crates downstream.",
+  "roadmap.doc.l2": "First read-only rendering of real <code>.doc</code> files with untouched-stream preservation; the save path comes after the read model proves out.",
+  "roadmap.doc.l3": "Honest scope: MS-DOC carries more legacy behaviour than OOXML; expect the schedule to move, and expect the corpus survey to name the gaps before code does.",
+  "roadmap.xlsx.r3": "Cell-level read projection: sharedStrings, five cell types, sheetData scan — 80-file corpus byte-identical gates untouched"
 }

@@ -65,8 +65,37 @@ const { lang = 'en' } = Astro.props as { lang?: Lang };
             <ul class="tl-record-list">
               <li><a href="https://github.com/quire-office/quire/commit/3ea86a1"><span class="tl-hash">3ea86a1</span>{t(lang, 'roadmap.xlsx.r1')}</a></li>
               <li><a href="https://github.com/quire-office/quire/commit/5ffcde0"><span class="tl-hash">5ffcde0</span>{t(lang, 'roadmap.xlsx.r2')}</a></li>
+              <li><a href="https://github.com/quire-office/quire/commit/0cf849a"><span class="tl-hash">0cf849a</span>{t(lang, 'roadmap.xlsx.r3')}</a></li>
             </ul>
           </div>
+        </article>
+      </li>
+
+      <li class="tl-item tl-doing" data-reveal>
+        <div class="tl-marker" aria-hidden="true"><span class="tl-dot"></span></div>
+        <article class="tl-card">
+          <p class="tl-meta"><span class="tl-status">{t(lang, 'roadmap.status.doing')}</span><span class="tl-phase">OpenDocument</span></p>
+          <h2>{t(lang, 'roadmap.odf.h2')}</h2>
+          <ul class="tl-list">
+            <li set:html={t(lang, 'roadmap.odf.l1')} />
+            <li>{t(lang, 'roadmap.odf.l2')}</li>
+            <li set:html={t(lang, 'roadmap.odf.l3')} />
+            <li>{t(lang, 'roadmap.odf.l4')}</li>
+          </ul>
+          <p class="tl-note">{t(lang, 'roadmap.odf.note')}</p>
+        </article>
+      </li>
+
+      <li class="tl-item tl-planned" data-reveal>
+        <div class="tl-marker" aria-hidden="true"><span class="tl-dot"></span></div>
+        <article class="tl-card">
+          <p class="tl-meta"><span class="tl-status">{t(lang, 'roadmap.status.planned')}</span><span class="tl-phase">Legacy DOC</span></p>
+          <h2>{t(lang, 'roadmap.doc.h2')}</h2>
+          <ul class="tl-list">
+            <li set:html={t(lang, 'roadmap.doc.l1')} />
+            <li>{t(lang, 'roadmap.doc.l2')}</li>
+            <li>{t(lang, 'roadmap.doc.l3')}</li>
+          </ul>
         </article>
       </li>
 
@@ -90,19 +119,6 @@ const { lang = 'en' } = Astro.props as { lang?: Lang };
           <ul class="tl-list">
             <li>{t(lang, 'roadmap.pptx.l1')}</li>
             <li>{t(lang, 'roadmap.pptx.l2')}</li>
-          </ul>
-        </article>
-      </li>
-
-      <li class="tl-item tl-planned" data-reveal>
-        <div class="tl-marker" aria-hidden="true"><span class="tl-dot"></span></div>
-        <article class="tl-card">
-          <p class="tl-meta"><span class="tl-status">{t(lang, 'roadmap.status.planned')}</span><span class="tl-phase">OpenDocument</span></p>
-          <h2>{t(lang, 'roadmap.odf.h2')}</h2>
-          <ul class="tl-list">
-            <li set:html={t(lang, 'roadmap.odf.l1')} />
-            <li>{t(lang, 'roadmap.odf.l2')}</li>
-            <li set:html={t(lang, 'roadmap.odf.l3')} />
           </ul>
         </article>
       </li>

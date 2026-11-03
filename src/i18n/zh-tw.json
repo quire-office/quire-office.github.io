@@ -254,5 +254,12 @@
   "home.foot.source": "原始碼",
   "home.foot.bugs": "問題追蹤",
   "home.foot.license": "Apache-2.0 授權 · 不做遙測",
-  "home.bytes.untouched": "未變動"
+  "home.bytes.untouched": "未變動",
+  "roadmap.odf.l4": "正在進行：50 檔 ODT 語料建置（含逐檔授權）與容器級普查；<code>core/odf</code> crate 等紅燈考卷從實檔選定後才落地。",
+  "roadmap.odf.note": "優先級調整：文字家族（ODT 與 legacy DOC）排在 PPTX 之前——先讓文字編輯器覆蓋最常見的文件格式，再做簡報。",
+  "roadmap.doc.h2": "Legacy DOC（舊版 Word 二進位）",
+  "roadmap.doc.l1": "OOXML 之前的二進位格式住在 OLE compound file 裡，不是 OPC——走自己的解析線，下游沿用同一套排版與整形 crate。",
+  "roadmap.doc.l2": "先做真實 <code>.doc</code> 的唯讀渲染與未觸碰 stream 保留；存檔面等讀取模型站穩之後才接。",
+  "roadmap.doc.l3": "範圍講清楚：MS-DOC 的歷史包袱比 OOXML 重，排程預計會滾動，缺口由語料普查先點名，不由程式碼先猜。",
+  "roadmap.xlsx.r3": "儲存格級唯讀投影：sharedStrings、五種 cell 型別、sheetData 掃描——80 檔位元組級往返考卷零動"
 }
