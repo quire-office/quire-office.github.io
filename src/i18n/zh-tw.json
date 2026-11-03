@@ -153,7 +153,7 @@
   "roadmap.odf.l2": "由 ODT（文字）開路，ODS 與 ODP 接在同一個核心之後；每種格式只帶自己格式要求的排版模型。",
   "roadmap.odf.l3": "範圍講清楚：容器層與往返紀律會沿用，OOXML 的 part 模型不會。<code>text:sect</code> 與 <code>office:styles</code> 的意思和 <code>sectPr</code>、<code>w:styles</code> 不同，所以對映是照 OASIS 規範寫，不是從 DOCX 猜。",
   "roadmap.products.h2": "長在引擎上的產品線",
-  "roadmap.products.l1": "<strong>瀏覽器編輯器</strong>（<code>quire-editor</code>）——線上體驗版加上編輯 API：在分頁內修改，走同一條無損存檔鏈。編輯 API 是下一個引擎里程碑，也是下面各項的前置。",
+  "roadmap.products.l1": "<strong>可內嵌編輯器組件</strong>（<code>quire-editor</code>）——CKEditor 形態、依格式分包的 npm 套件（<code>@quire/word</code>、<code>@quire/sheets</code>、<code>@quire/slides</code>），共享同一個核心 runtime：掛進任何容器或全螢幕執行，每包只帶自己格式的 wasm。全鏈 Apache-2.0；wasm 包內附、可選配 CDN 覆寫。<code>@quire/word</code> 先出貨，前置是編輯 API——下一個引擎里程碑。",
   "roadmap.products.l2": "<strong>桌面應用</strong>（<code>quire-desktop</code>，Tauri v2）——原生 Rust 核心套一層薄 Tauri 外殼；繞 wasm 那條路不走，出 Windows／macOS／Linux 安裝檔。",
   "roadmap.products.l3": "<strong>協作與儲存伺服器</strong>（<code>quire-server</code>）——可自架，Docker 優先的單映像（目前 SQLite＋本機磁碟，儲存層可插），CRDT 同步走瀏覽器協作分塊同樣的 loro 後端。授權與其餘一切相同，Apache-2.0。",
   "roadmap.split.h2": "外殼分倉，等它值得的時候",
