@@ -1,0 +1,514 @@
+---
+import Base from '../layouts/Base.astro';
+import { t, stringsFor } from '../i18n/ui';
+import type { Lang } from '../i18n/ui';
+// 引擎版本唯一信任來源＝playground.assets.json（fetch:wasm 依它拉 release 資產＋驗 sha256）。
+// 建置期烘焙進頁面，避免執行期再拉清單檔。
+import assets from '../../playground.assets.json';
+const engineVersion = `v${assets.version}`;
+
+// 版本連結：字典以 {ver} 佔位，連結在此合成，不把 URL 寫進翻譯檔。
+const verLink = `<a class="engine-ver" href="https://github.com/quire-office/quire/releases/tag/${engineVersion}">${engineVersion}</a>`;
+
+const { lang = 'en' } = Astro.props as { lang?: Lang };
+// 靜態驅動腳本（public/playground/*.js 不经 i18n 建置）需要的文案一律由本節點
+// 以 data-strings 一次帶入：字串的單一來源仍是 i18n 字典，腳本端只留英文退回值。
+const jsStrings: Record<string, string> = {
+  ...stringsFor(lang, 'pg.js.'),
+  errFilePrefix: t(lang, 'pg.errFilePrefix'),
+  pageOf: t(lang, 'pg.pageOf'),
+  metaParas: t(lang, 'pg.metaParas'),
+  missingChip: lang === 'en'
+    ? 'Missing assets · engine not ready'
+    : '缺資產 · 引擎未就緒',
+  missingDesc: lang === 'en'
+    ? 'WASM engine assets missing ({which} 404); rendering cannot start.'
+    : 'WASM 引擎資產缺失（{which} 404），無法啟動渲染。',
+};
+jsStrings.ready = jsStrings.ready.replace('{ver}', engineVersion);
+---
+<Base
+  title={t(lang, 'pg.title')}
+  description={t(lang, 'pg.desc')}
+  path="/playground"
+  lang={lang}
+>
+  <div id="pg-i18n" hidden data-strings={JSON.stringify(jsStrings)}></div>
+  <section class="hero">
+    <div class="wrap">
+      <p class="eyebrow"><span class="tick">●</span> WASM Playground — Read-only Beta · Engine <a class="engine-ver" href={`https://github.com/quire-office/quire/releases/tag/${engineVersion}`}>{engineVersion}</a></p>
+      <h1 set:html={t(lang, 'pg.h1a')} />
+      <p class="sub" set:html={t(lang, 'pg.sub')} />
+      <p class="budget-callout">
+        <span class="chip-sm">{t(lang, 'pg.budgetChip')}</span>
+        {t(lang, 'pg.budget')}
+      </p>
+    </div>
+  </section>
+
+  <section class="wrap">
+    <!-- 拖放與選檔區域：用 label 做觸發器——手機瀏覽器對隱藏 input 的
+         JS .click() 常被攔，label 的原生輕觸啟用是唯一全平台可靠路徑。
+         accept 必須帶 MIME：Android 檔案 App 依 MIME 過濾，只給 .docx
+         副檔名會導致選檔清單全灰（手機無法選檔的根因）。 -->
+    <label class="dropzone" id="dropzone" for="file-input">
+      <!-- 不可用 display:none：隱藏的 control 在桌面瀏覽器連 label 啟用一起失效，
+           改用視覺隱藏（保留 layout 與可啟用性），label 輕觸與 JS .click() 兩路都通 -->
+      <input type="file" id="file-input"
+             accept=".docx,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/zip"
+             class="dz-file" />
+      <span class="chip" id="wasm-status-chip" data-engine-version={engineVersion}>{t(lang, 'pg.js.loading')}</span>
+      <p class="dz-title" set:html={t(lang, 'pg.dzTitle')} />
+      <p class="dz-sub" id="status-desc">{t(lang, 'pg.dzSubLoading')}</p>
+
+      <!-- 流式下載進度條 -->
+      <div class="progress-wrap" id="progress-wrap">
+        <div class="progress-bar" id="progress-bar"></div>
+      </div>
+
+      <p class="privacy-note" set:html={t(lang, 'pg.privacy')} />
+    </label>
+
+    <!-- 具體錯誤警示面板（預設隱藏） -->
+    <div class="error-panel" id="error-panel" hidden role="alert">
+      <div class="error-header">
+        <span class="error-badge">{t(lang, 'pg.errBadge')}</span>
+        <strong id="error-type">{t(lang, 'pg.js.errMissingTitle')}</strong>
+      </div>
+      <p class="error-detail" id="error-detail"></p>
+      <p class="error-hint">{t(lang, 'pg.errHint')}</p>
+    </div>
+
+    <!-- 唯讀畫布與分頁檢視面板（預設隱藏） -->
+    <div class="viewer-panel" id="viewer-panel" hidden>
+      <div class="viewer-toolbar">
+        <div class="toolbar-left">
+          <button type="button" class="btn btn-sm btn-ghost" id="prev-page-btn" disabled>◀ {t(lang, 'pg.prev')}</button>
+          <button type="button" class="btn btn-sm btn-ghost" id="next-page-btn" disabled>{t(lang, 'pg.next')} ▶</button>
+          <span class="page-info" id="page-info">{t(lang, 'pg.pageOf').replace('{cur}', '1').replace('{total}', '1')}</span>
+        </div>
+        <div class="toolbar-right">
+          <span class="doc-meta" id="doc-meta">{t(lang, 'pg.metaParas').replace('{n}', '0').replace('{w}', '595').replace('{h}', '842')}</span>
+        </div>
+      </div>
+
+      <div class="canvas-viewport" id="canvas-viewport">
+        <canvas id="render-canvas"></canvas>
+      </div>
+    </div>
+  </section>
+
+  <section class="wrap" aria-labelledby="spec-h">
+    <h2 id="spec-h">{t(lang, 'pg.spec.h')}</h2>
+    <table class="spec">
+      <tbody>
+        <tr>
+          <th scope="row">{t(lang, 'pg.spec.input')}</th>
+          <td set:html={t(lang, 'pg.spec.inputTd')} />
+        </tr>
+        <tr>
+          <th scope="row">{t(lang, 'pg.spec.engine')}</th>
+          <td set:html={t(lang, 'pg.spec.engineTd')} />
+        </tr>
+        <tr>
+          <th scope="row">{t(lang, 'pg.spec.engineVer')}</th>
+          <td set:html={t(lang, 'pg.spec.engineVerTd').replace('{ver}', verLink)} />
+        </tr>
+        <tr>
+          <th scope="row">{t(lang, 'pg.spec.output')}</th>
+          <td set:html={t(lang, 'pg.spec.outputTd')} />
+        </tr>
+        <tr>
+          <th scope="row">{t(lang, 'pg.spec.editing')}</th>
+          <td set:html={t(lang, 'pg.spec.editingTd')} />
+        </tr>
+        <tr>
+          <th scope="row">{t(lang, 'pg.spec.budget')}</th>
+          <td>{t(lang, 'pg.spec.budgetTd')}</td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section class="wrap" aria-labelledby="status-h">
+    <h2 id="status-h">{t(lang, 'pg.status.h')}</h2>
+    <p set:html={t(lang, 'pg.status.lead')} />
+    <div class="status-grid">
+      <div class="status-card">
+        <h3>{t(lang, 'pg.status.corpusH')}</h3>
+        <p set:html={t(lang, 'pg.status.corpusP')} />
+      </div>
+      <div class="status-card">
+        <h3>{t(lang, 'pg.status.supportH')}</h3>
+        <p set:html={t(lang, 'pg.status.supportP')} />
+      </div>
+      <div class="status-card">
+        <h3>{t(lang, 'pg.status.limitH')}</h3>
+        <ul class="limitations-list">
+          <li set:html={t(lang, 'pg.status.l1')} />
+          <li set:html={t(lang, 'pg.status.l2')} />
+          <li set:html={t(lang, 'pg.status.l3')} />
+          <li set:html={t(lang, 'pg.status.l4')} />
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- 缺資產守門：quire_web.js 缺檔時模組載入直接失敗、重磅模組不會執行，
+       故用獨立 inline 腳本偵測資產 404 並顯示具體補救指示（不與引擎錯誤混淆） -->
+  <script is:inline>
+    (function () {
+      "use strict";
+      // 文案由頁面 #pg-i18n 的 data-strings 帶入（來源＝i18n 字典）；
+      // 讀不到時退回英文，不顯示空白。
+      var STR = {};
+      try { STR = JSON.parse((document.getElementById("pg-i18n") || {}).dataset.strings || "{}"); } catch (e) { STR = {}; }
+      var MISSING_HINT = STR.missingHint ||
+        "This build is missing the WASM engine assets (quire_web_bg.wasm / quire_web.js under public/playground/). " +
+        "Run 'npm run fetch:wasm' in the repo root, then rebuild.";
+      function indicateMissingAssets(which) {
+        var chip = document.getElementById("wasm-status-chip");
+        var desc = document.getElementById("status-desc");
+        var panel = document.getElementById("error-panel");
+        var detail = document.getElementById("error-detail");
+        var type = document.getElementById("error-type");
+        if (chip) {
+          chip.textContent = STR.missingChip || "Missing assets · engine not ready";
+          chip.className = "chip chip-error";
+        }
+        if (desc) desc.textContent = (STR.missingDesc || "WASM engine assets missing ({which} 404).").replace("{which}", which);
+        if (type) type.textContent = STR.errMissingTitle || "Engine asset missing";
+        if (detail) detail.textContent = MISSING_HINT;
+        if (panel) panel.hidden = false;
+        var wrap = document.getElementById("progress-wrap");
+        if (wrap) wrap.hidden = true;
+      }
+      function check(a, b) {
+        fetch("/playground/" + a, { method: "HEAD" })
+          .then(function (r1) {
+            if (r1.status !== 404) return;
+            fetch("/playground/" + b, { method: "HEAD" }).then(function (r2) {
+              var bad = r1.status === 404 ? a : r2.status === 404 ? b : null;
+              if (bad) indicateMissingAssets(bad);
+            });
+          })
+          .catch(function () {}); // 網路層失敗交由引擎模組自身的錯誤面板處理
+      }
+      window.addEventListener("load", function () {
+        setTimeout(function () { check("quire_web_bg.wasm", "quire_web.js"); }, 400);
+      });
+    })();
+  </script>
+  <!-- 引入 Playground 模組化驅動腳本 -->
+  <script type="module" src="/playground/playground.js"></script>
+</Base>
+
+<style>
+  /* Playground 專屬樣式（Scoped） */
+  .budget-callout {
+    font-family: var(--font-mono);
+    font-size: 0.8rem;
+    color: var(--muted);
+    border-left: 2px solid var(--rule);
+    padding-left: 0.8rem;
+    margin-top: 1rem;
+    line-height: 1.6;
+  }
+
+  .chip-sm {
+    display: inline-block;
+    font-size: 0.68rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    border: 1px solid var(--rule);
+    padding: 0.1rem 0.4rem;
+    margin-right: 0.4rem;
+    vertical-align: middle;
+  }
+
+  /* 引擎版本：eyebrow 內走同字級、僅以底線與次要色區分，不搶主標 */
+  .eyebrow .engine-ver {
+    color: inherit;
+    text-decoration: underline;
+    text-underline-offset: 0.18em;
+    text-decoration-color: var(--rule);
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+  }
+  .eyebrow .engine-ver:hover { text-decoration-color: currentColor; }
+
+  /* 中文跑版修正：dropzone 訊息區塊一律左對齊＋行距 1.6 起，
+     不得出現「預/覽」式標點鋸字或 URL 反引號撕裂整段 */
+  .dropzone .dz-title,
+  .dropzone .dz-sub,
+  .dropzone .privacy-note {
+    text-align: left;
+    line-height: 1.6;
+    word-break: normal;
+    overflow-wrap: break-word;
+    line-break: strict;
+  }
+
+  .dropzone .dz-sub {
+    margin-inline: 0 auto; /* 區塊靠左收窄，不再整段偏右飄 */
+  }
+
+  .dropzone .progress-wrap {
+    margin-left: 0;
+  }
+
+  .dropzone {
+    cursor: pointer;
+    transition: border-color 0.18s ease, background-color 0.18s ease;
+    user-select: none;
+    outline: none;
+  }
+
+  .dropzone:hover,
+  .dropzone:focus-visible,
+  .dropzone:focus-within,
+  .dropzone.drag-over {
+    border-color: var(--fg);
+    background-color: var(--panel-hover, rgba(255, 255, 255, 0.04));
+  }
+
+  .chip-ready {
+    border-color: #2b8a3e;
+    color: #2b8a3e;
+  }
+
+  .chip-success {
+    border-color: #2f9e44;
+    color: #2f9e44;
+  }
+
+  .chip-error {
+    border-color: #e03131;
+    color: #e03131;
+  }
+
+  .progress-wrap {
+    width: 100%;
+    max-width: 320px;
+    height: 4px;
+    background: var(--rule);
+    margin: 1rem auto 0.6rem;
+    overflow: hidden;
+    border-radius: 2px;
+  }
+
+  .progress-bar {
+    width: 0%;
+    height: 100%;
+    background: var(--fg);
+    transition: width 0.12s ease;
+  }
+
+  .privacy-note {
+    font-family: var(--font-mono);
+    font-size: 0.78rem;
+    color: var(--muted);
+    margin-top: 1.2rem;
+    /* 行內截圖實證：mono＋中文混排最易鋸行——左對齊＋行距 1.6＋禁則化折行 */
+    line-height: 1.7;
+    word-break: normal;
+    overflow-wrap: anywhere; /* 允許長檔名/URL 折行，但絕不撐破容器 */
+    line-break: strict;
+  }
+
+  .privacy-note strong {
+    color: var(--fg);
+  }
+
+  /* 錯誤面板 */
+  .error-panel {
+    border: 1px solid #e03131;
+    background: rgba(224, 49, 49, 0.06);
+    padding: 1.2rem 1.5rem;
+    margin-block: 1.5rem;
+    text-align: left;
+  }
+
+  .error-header {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    margin-bottom: 0.5rem;
+  }
+
+  .error-badge {
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    background: #e03131;
+    color: #fff;
+    padding: 0.15rem 0.45rem;
+    font-weight: 600;
+  }
+
+  .error-detail {
+    font-family: var(--font-mono);
+    font-size: 0.9rem;
+    color: #c92a2a;
+    line-height: 1.6;
+    margin-bottom: 0.6rem;
+    /* 原 word-break: break-all 會把 URL/檔名從任意字元撕行；改 anywhere 保留
+       長字串可折行的能力，僅在確實會溢出時才斷，正常中文不鋸字 */
+    word-break: normal;
+    overflow-wrap: anywhere;
+    white-space: pre-line; /* 引擎指示訊息保留 \n 換行，閱讀性優先 */
+  }
+
+  .error-hint {
+    font-size: 0.82rem;
+    color: var(--muted);
+    margin: 0;
+  }
+
+  /* 預覽面板與工具列 */
+  .viewer-panel {
+    margin-block: 2rem;
+  }
+
+  .viewer-toolbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.8rem;
+    background: var(--panel);
+    border: 1px solid var(--rule);
+    padding: 0.6rem 1rem;
+    margin-bottom: 1.2rem;
+  }
+
+  .toolbar-left {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+  }
+
+  .btn-sm {
+    padding: 0.35rem 0.75rem;
+    font-size: 0.78rem;
+    cursor: pointer;
+  }
+
+  .btn-sm:disabled {
+    opacity: 0.35;
+    cursor: not-allowed;
+    border-color: var(--rule);
+  }
+
+  .page-info {
+    font-family: var(--font-mono);
+    font-size: 0.85rem;
+    font-weight: 600;
+    margin-left: 0.4rem;
+  }
+
+  .toolbar-right {
+    font-family: var(--font-mono);
+    font-size: 0.8rem;
+    color: var(--muted);
+  }
+
+  /* 截圖實證：「（22.6 KB)，全篇共 11 頁。可在下方翻頁預 覽。」被右對齊＋
+     mono 折行鋸開——改左對齊、禁則化折行、行距 1.6，允許在必要時折成兩行 */
+  .doc-meta {
+    display: inline-block;
+    text-align: left;
+    line-height: 1.6;
+    white-space: normal;
+    word-break: normal;
+    overflow-wrap: anywhere;
+    line-break: strict;
+    max-width: 32rem;
+  }
+
+  .canvas-viewport {
+    background: #2a2a2a;
+    padding: 2rem 1rem;
+    border: 1px solid var(--rule);
+    overflow-x: auto;
+    text-align: center;
+  }
+
+  .canvas-viewport canvas {
+    box-shadow: 0 4px 24px rgba(0, 0, 0, 0.45);
+    max-width: 100%;
+    height: auto;
+    display: inline-block;
+    background: #ffffff;
+  }
+
+  /* Status 區塊網格 */
+  .status-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 1.2rem;
+    margin-top: 1.2rem;
+  }
+
+  .status-card {
+    border: 1px solid var(--rule);
+    background: var(--panel);
+    padding: 1.2rem 1.4rem;
+  }
+
+  .status-card h3 {
+    font-family: var(--font-serif);
+    font-size: 1.05rem;
+    margin-bottom: 0.6rem;
+  }
+
+  .status-card p {
+    font-size: 0.88rem;
+    line-height: 1.6;
+    color: var(--muted);
+    margin: 0;
+    word-break: normal;
+    overflow-wrap: break-word;
+    line-break: strict;
+  }
+
+  .limitations-list {
+    margin: 0;
+    padding-left: 1.1rem;
+    font-size: 0.85rem;
+    line-height: 1.6;
+    color: var(--muted);
+    word-break: normal;
+    overflow-wrap: break-word;
+    line-break: strict;
+  }
+
+  .limitations-list li {
+    margin-bottom: 0.35rem;
+  }
+
+  /* 手機窄屏（≤640px）：mixed mono/CJK 進一步確保不單字撐爆、不鋸字 */
+  @media (max-width: 640px) {
+    .dropzone .dz-title {
+      font-size: 1.15rem;
+    }
+
+    .dropzone .dz-sub,
+    .budget-callout,
+    .privacy-note {
+      font-size: 0.74rem;
+      overflow-wrap: anywhere;
+    }
+
+    .viewer-toolbar {
+      align-items: flex-start;
+    }
+
+    .toolbar-right,
+    .doc-meta {
+      text-align: left;
+      max-width: 100%;
+    }
+  }
+</style>

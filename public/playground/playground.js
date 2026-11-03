@@ -9,6 +9,46 @@ import {
   renderDisplayListToCanvas,
 } from "./renderer.js";
 
+/**
+ * 文案取自頁面 #pg-i18n 的 data-strings（來源＝src/i18n 字典，build 期烘焙）。
+ * 本腳本是 public/ 下的靜態資產、不經 i18n 建置，因此字串一律向外要，
+ * 缺鍵時退回英文常量，確保任何情況下都有可讀提示而非空白。
+ */
+const I18N = (() => {
+  const EN = {
+    loading: "Loading · WASM streaming compile",
+    ready: "Engine ready · {ver} · runs in your browser",
+    readyNoVer: "Engine ready · runs in your browser",
+    error: "Processing error · render not completed",
+    fetching: "Fetching the WASM engine from this site (about 1.57 MB / 910 KB gzip)…",
+    downloading: "Downloading WASM engine: {got} / {total} ({pct}%)",
+    downloadingNoTotal: "Downloading WASM engine: {got}",
+    loaded: "WASM core loaded ({size}, {ms} ms, cached). Drop or choose a .docx file.",
+    reading: "Reading file “{name}” ({size})…",
+    waitingEngine: "Waiting for the WASM engine to finish loading…",
+    errMissingTitle: "Engine asset missing",
+    errMissingDetail: "This build is missing the WASM engine asset (/playground/quire_web_bg.wasm returned 404). By policy the engine binary is not committed to the web repo — run “npm run fetch:wasm” in this repo's root, then rebuild.",
+    pageOf: "Page {cur} / {total}",
+    metaParas: "{n} paragraphs in the document · page width {w} pt · page height {h} pt",
+    validateFileEmpty: "The selected file is 0 bytes — not a valid DOCX.",
+    validateBadExt: "Format not supported: only .docx is accepted, this file is [{ext}]. Convert older .doc or other formats to .docx first.",
+    validateNoExt: "no extension",
+    validateTooShort: "The file is too short to be a valid Office Open XML (DOCX) container.",
+    validateNotZip: "Not a DOCX: the standard ZIP (PK) container header is missing.",
+  };
+  let got = {};
+  try {
+    got = JSON.parse((document.getElementById("pg-i18n") || {}).dataset.strings || "{}") || {};
+  } catch (_) { got = {}; }
+  return {
+    get(key, vars) {
+      let out = got[key] ?? EN[key] ?? key;
+      if (vars) for (const [k, v] of Object.entries(vars)) out = out.replaceAll(`{${k}}`, String(v));
+      return out;
+    },
+  };
+})();
+
 // DOM 元素引用
 const dropzone = document.getElementById("dropzone");
 const fileInput = document.getElementById("file-input");
@@ -47,12 +87,12 @@ function showError(type, detail, fileName = "") {
     if (errorTypeEl) errorTypeEl.textContent = type;
     if (errorDetailEl) {
       errorDetailEl.textContent = fileName
-        ? `檔案 [${fileName}]：${detail}`
+              ? I18N.get("errFilePrefix", { name: fileName }) + detail
         : detail;
     }
   }
   if (statusChip) {
-    statusChip.textContent = "處理異常 · 未完成渲染";
+    statusChip.textContent = I18N.get("error");
     statusChip.className = "chip chip-error";
   }
   if (fileInput) fileInput.value = "";
@@ -73,8 +113,8 @@ async function loadWasm() {
   const t0 = performance.now();
 
   try {
-    if (statusChip) statusChip.textContent = "WASM 載入中 · 流式編譯";
-    if (statusDesc) statusDesc.textContent = "正在自本站取得 WASM 引擎（約 1.57 MB / Gzip 實測 910 KB）…";
+    if (statusChip) statusChip.textContent = I18N.get("loading");
+    if (statusDesc) statusDesc.textContent = I18N.get("fetching");
     if (progressWrap) progressWrap.hidden = false;
 
     const res = await fetch(wasmUrl);
@@ -107,11 +147,11 @@ async function loadWasm() {
           const pct = Math.min(100, Math.round((received / total) * 100));
           if (progressBar) progressBar.style.width = `${pct}%`;
           if (statusDesc) {
-            statusDesc.textContent = `WASM 引擎下載中：${formatBytes(received)} / ${formatBytes(total)} (${pct}%)`;
+                      statusDesc.textContent = I18N.get("downloading", { got: formatBytes(received), total: formatBytes(total), pct });
           }
         } else {
           if (statusDesc) {
-            statusDesc.textContent = `WASM 引擎下載中：${formatBytes(received)}`;
+                        statusDesc.textContent = I18N.get("downloadingNoTotal", { got: formatBytes(received) });
           }
         }
       }
@@ -131,12 +171,12 @@ async function loadWasm() {
       // build 期烘焙；非執行期猜測）。缺屬性＝舊版烘焙，退回不顯示版本而非顯示錯的。
       const ver = statusChip.dataset.engineVersion;
       statusChip.textContent = ver
-        ? `引擎就緒 · ${ver} · 純瀏覽器執行`
-        : "引擎就緒 · 純瀏覽器執行";
+                ? I18N.get("ready", { ver })
+                : I18N.get("readyNoVer");
       statusChip.className = "chip chip-ready";
     }
     if (statusDesc) {
-      statusDesc.textContent = `WASM 核心已載入（${formatBytes(received)}，耗時 ${elapsedMs}ms，已快取）。請拖放或選取 .docx 檔案。`;
+            statusDesc.textContent = I18N.get("loaded", { size: formatBytes(received), ms: elapsedMs });
     }
   } catch (err) {
     console.error("WASM 載入失敗：", err);
@@ -144,7 +184,7 @@ async function loadWasm() {
     if (progressWrap) progressWrap.hidden = true;
     showError(
       "WASM 載入失敗",
-      `無法成功載入或編譯 WASM 模組（${err.message || String(err)}）。請檢查網路或重新整理。`
+              I18N.get("errWasmLoad", { msg: err.message || String(err) })
     );
   }
 }
@@ -180,7 +220,7 @@ function renderCurrentPage() {
 
   const totalPages = currentEngine.page_count();
   if (totalPages === 0) {
-    showError("分頁異常", "文件有效頁數為 0，無法進行渲染。", currentFileName);
+        showError(I18N.get("errPaginateTitle"), I18N.get("errZeroPages"), currentFileName);
     return;
   }
 
@@ -196,7 +236,7 @@ function renderCurrentPage() {
   } catch (err) {
     showError(
       "渲染失敗",
-      `無法解析第 ${currentPage + 1} 頁的顯示列表（${err.message || String(err)}）`,
+            I18N.get("errPageList", { page: currentPage + 1, msg: err.message || String(err) }),
       currentFileName
     );
     return;
@@ -207,7 +247,7 @@ function renderCurrentPage() {
   } catch (err) {
     showError(
       "Canvas 繪製錯誤",
-      `Canvas2D 繪製過程發生錯誤（${err.message || String(err)}）`,
+            I18N.get("errCanvas", { msg: err.message || String(err) }),
       currentFileName
     );
     return;
@@ -215,10 +255,10 @@ function renderCurrentPage() {
 
   // 更新分頁資訊與按鈕
   if (pageInfo) {
-    pageInfo.textContent = `第 ${currentPage + 1} / ${totalPages} 頁`;
+        pageInfo.textContent = I18N.get("pageOf", { cur: currentPage + 1, total: totalPages });
   }
   if (docMeta) {
-    docMeta.textContent = `全篇共 ${currentEngine.paragraph_count()} 個段落 · 頁寬 ${dl.width_pt || 595} pt · 頁高 ${dl.height_pt || 842} pt`;
+        docMeta.textContent = I18N.get("metaParas", { n: currentEngine.paragraph_count(), w: dl.width_pt || 595, h: dl.height_pt || 842 });
   }
   if (prevBtn) prevBtn.disabled = currentPage <= 0;
   if (nextBtn) nextBtn.disabled = currentPage >= totalPages - 1;
@@ -237,31 +277,43 @@ async function handleFile(file) {
   if (!file) return;
 
   clearError();
-  if (statusDesc) statusDesc.textContent = `正在讀取檔案「${file.name}」(${formatBytes(file.size)})…`;
+    if (statusDesc) statusDesc.textContent = I18N.get("reading", { name: file.name, size: formatBytes(file.size) });
 
   let bytes;
   try {
     const arrayBuffer = await file.arrayBuffer();
     bytes = new Uint8Array(arrayBuffer);
   } catch (err) {
-    showError("檔案讀取失敗", `瀏覽器讀取檔案位元組失敗：${err.message || String(err)}`, file.name);
+        showError(I18N.get("errReadTitle"), I18N.get("errReadDetail", { msg: err.message || String(err) }), file.name);
     return;
   }
 
   // 1) 格式校驗（副檔名、大小、ZIP/PK 容器）
   const validation = validateDocxFile(file.name, bytes);
   if (!validation.valid) {
-    showError("格式不支援", validation.error, file.name);
+        // 校驗失敗的顯示文案依 reason 從字串表取（reason 是穩定契約，字串可譯）；
+    // 查不到 reason 時退回 renderer 給的語言中立描述，不顯示空白。
+    const REASON_KEYS = {
+      FILE_EMPTY: "validateFileEmpty",
+      INVALID_EXTENSION: "validateBadExt",
+      TOO_SHORT: "validateTooShort",
+      NOT_ZIP_CONTAINER: "validateNotZip",
+    };
+    const key = REASON_KEYS[validation.reason];
+    const detail = key
+      ? I18N.get(key, { ext: validation.ext || I18N.get("validateNoExt") })
+      : validation.error;
+    showError(I18N.get("errFormatTitle"), detail, file.name);
     return;
   }
 
   // 2) 確認 WASM 引擎已就緒
   if (!wasmReady) {
-    if (statusDesc) statusDesc.textContent = "等待 WASM 引擎載入完成…";
+      if (statusDesc) statusDesc.textContent = I18N.get("waitingEngine");
     try {
       await wasmInitPromise;
     } catch {
-      showError("WASM 未就緒", "WASM 模組尚未就緒，無法開啟文件。", file.name);
+          showError(I18N.get("errNotReadyTitle"), I18N.get("errNotReadyDetail"), file.name);
       return;
     }
   }
@@ -274,7 +326,7 @@ async function handleFile(file) {
     console.error("WasmEngine 解析錯誤：", err);
     showError(
       "解析失敗",
-      `DOCX 內容解析錯誤（${err.message || String(err)}）。文件可能損毀或包含非標準 XML 結構。`,
+            I18N.get("errParse", { msg: err.message || String(err) }),
       file.name
     );
     return;
@@ -285,14 +337,14 @@ async function handleFile(file) {
   try {
     pageCount = engine.page_count();
   } catch (err) {
-    showError("分頁讀取失敗", `取得分頁資訊時發生錯誤：${err.message || String(err)}`, file.name);
+        showError(I18N.get("errPageInfoTitle"), I18N.get("errPageInfoDetail", { msg: err.message || String(err) }), file.name);
     return;
   }
 
   if (pageCount < 1) {
     showError(
       "分頁異常",
-      `引擎完成排版但未產生任何頁面（page_count = ${pageCount}）。文件可能缺少內文段落或版面章節（sectPr）資訊。`,
+            I18N.get("errNoPages", { count: pageCount }),
       file.name
     );
     return;
@@ -305,11 +357,11 @@ async function handleFile(file) {
 
   if (viewerPanel) viewerPanel.hidden = false;
   if (statusChip) {
-    statusChip.textContent = "渲染完成 · 唯讀預覽";
+        statusChip.textContent = I18N.get("renderDone");
     statusChip.className = "chip chip-success";
   }
   if (statusDesc) {
-    statusDesc.textContent = `已成功載入「${file.name}」（${formatBytes(file.size)}），全篇共 ${pageCount} 頁。可在下方翻頁預覽。`;
+        statusDesc.textContent = I18N.get("renderDoneDesc", { name: file.name, size: formatBytes(file.size), pages: pageCount });
   }
 
   renderCurrentPage();
@@ -322,9 +374,9 @@ async function handleFile(file) {
 function setupUI() {
   // 點擊 dropzone：dropzone 是 <label for="file-input">，滑鼠／觸控的點擊由
   // label 的原生啟用行為直接開啟選擇器（手機瀏覽器唯一可靠路徑；JS .click()
-  // 對隱藏 input 在部分移動端会被攔截）。這裡只補兩個缺口：
+  // 對隱藏 input 在部分移動端會被攔截）。這裡只補兩個缺口：
   // 1) isTrusted=false 的合成事件不會觸發 label 啟用行為 → 手動補 click；
-  // 2) 內部 <button>（翻頁鍵等）冒泡上来的點擊不得開選擇器。
+  // 2) 內部 <button>（翻頁鍵等）冒泡上來的點擊不得開選擇器。
   if (dropzone && fileInput) {
     dropzone.addEventListener("click", (e) => {
       if (e.target.closest("button")) return;

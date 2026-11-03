@@ -28,6 +28,8 @@ jobs:
       - run: npm ci
       - run: npm run build
       - run: npm run check:local
+      # 雙語閘門：字典 key 對齊、簡體字形、中文軟換行（紅燈即不部署）
+      - run: npm run check:i18n
       - uses: actions/upload-pages-artifact@v3
         with:
           path: dist

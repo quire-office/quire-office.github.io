@@ -1,0 +1,133 @@
+---
+import Base from '../layouts/Base.astro';
+import '../styles/roadmap.css';
+import { t } from '../i18n/ui';
+import type { Lang } from '../i18n/ui';
+
+const { lang = 'en' } = Astro.props as { lang?: Lang };
+---
+<Base
+  title={t(lang, 'roadmap.title')}
+  description={t(lang, 'roadmap.desc')}
+  path="/roadmap"
+  lang={lang}
+>
+  <section class="hero">
+    <div class="wrap">
+      <p class="eyebrow"><span class="tick">●</span> {t(lang, 'roadmap.eyebrow')}</p>
+      <h1>{t(lang, 'roadmap.h1')}</h1>
+      <p class="sub">{t(lang, 'roadmap.sub')}</p>
+    </div>
+  </section>
+
+  <section class="wrap roadmap">
+    <ol class="timeline" aria-label={t(lang, 'roadmap.timelineAria')}>
+      <li class="tl-item tl-done" data-reveal>
+        <div class="tl-marker" aria-hidden="true"><span class="tl-dot"></span></div>
+        <article class="tl-card">
+          <p class="tl-meta"><span class="tl-status">{t(lang, 'roadmap.status.done')}</span><span class="tl-phase">DOCX</span></p>
+          <h2>DOCX</h2>
+          <ul class="tl-list">
+            <li>{t(lang, 'roadmap.docx.l1')}</li>
+            <li>{t(lang, 'roadmap.docx.l2')}</li>
+            <li set:html={t(lang, 'roadmap.docx.l3')} />
+            <li>{t(lang, 'roadmap.docx.l4')}</li>
+            <li>{t(lang, 'roadmap.docx.l5')}</li>
+          </ul>
+          <div class="tl-records">
+            <p class="tl-records-label">{t(lang, 'roadmap.records.doneLabel')}</p>
+            <ul class="tl-record-list">
+              <li><a href="https://github.com/quire-office/quire/commit/dbc63c9"><span class="tl-hash">dbc63c9</span>{t(lang, 'roadmap.docx.r1')}</a></li>
+              <li><a href="https://github.com/quire-office/quire/commit/8d3f401"><span class="tl-hash">8d3f401</span>{t(lang, 'roadmap.docx.r2')}</a></li>
+              <li><a href="https://github.com/quire-office/quire/commit/9467208"><span class="tl-hash">9467208</span>{t(lang, 'roadmap.docx.r3')}</a></li>
+              <li><a href="https://github.com/quire-office/quire/commit/cfcf776"><span class="tl-hash">cfcf776</span>{t(lang, 'roadmap.docx.r4')}</a></li>
+              <li><a href="https://github.com/quire-office/quire/commit/3ce00ed"><span class="tl-hash">3ce00ed</span>{t(lang, 'roadmap.docx.r5')}</a></li>
+              <li><a href="https://github.com/quire-office/quire/commit/4c9440c"><span class="tl-hash">4c9440c</span>{t(lang, 'roadmap.docx.r6')}</a></li>
+              <li><a href="https://github.com/quire-office/quire/commit/162322f"><span class="tl-hash">162322f</span>{t(lang, 'roadmap.docx.r7')}</a></li>
+              <li><a href="https://github.com/quire-office/quire/commit/7ab8604"><span class="tl-hash">7ab8604</span>{t(lang, 'roadmap.docx.r8')}</a></li>
+            </ul>
+          </div>
+        </article>
+      </li>
+
+      <li class="tl-item tl-doing" data-reveal>
+        <div class="tl-marker" aria-hidden="true"><span class="tl-dot"></span></div>
+        <article class="tl-card">
+          <p class="tl-meta"><span class="tl-status">{t(lang, 'roadmap.status.doing')}</span><span class="tl-phase">XLSX</span></p>
+          <h2>XLSX</h2>
+          <ul class="tl-list">
+            <li set:html={t(lang, 'roadmap.xlsx.l1')} />
+            <li>{t(lang, 'roadmap.xlsx.l2')}</li>
+            <li>{t(lang, 'roadmap.xlsx.l3')}</li>
+          </ul>
+          <div class="tl-records">
+            <p class="tl-records-label">{t(lang, 'roadmap.records.progressLabel')}</p>
+            <ul class="tl-record-list">
+              <li><a href="https://github.com/quire-office/quire/commit/3ea86a1"><span class="tl-hash">3ea86a1</span>{t(lang, 'roadmap.xlsx.r1')}</a></li>
+              <li><a href="https://github.com/quire-office/quire/commit/5ffcde0"><span class="tl-hash">5ffcde0</span>{t(lang, 'roadmap.xlsx.r2')}</a></li>
+            </ul>
+          </div>
+        </article>
+      </li>
+
+      <li class="tl-item tl-planned" data-reveal>
+        <div class="tl-marker" aria-hidden="true"><span class="tl-dot"></span></div>
+        <article class="tl-card">
+          <p class="tl-meta"><span class="tl-status">{t(lang, 'roadmap.status.planned')}</span><span class="tl-phase">{t(lang, 'roadmap.phase.docxDepth')}</span></p>
+          <h2>{t(lang, 'roadmap.depth.h2')}</h2>
+          <ul class="tl-list">
+            <li set:html={t(lang, 'roadmap.depth.l1')} />
+            <li>{t(lang, 'roadmap.depth.l2')}</li>
+          </ul>
+        </article>
+      </li>
+
+      <li class="tl-item tl-planned" data-reveal>
+        <div class="tl-marker" aria-hidden="true"><span class="tl-dot"></span></div>
+        <article class="tl-card">
+          <p class="tl-meta"><span class="tl-status">{t(lang, 'roadmap.status.planned')}</span><span class="tl-phase">PPTX</span></p>
+          <h2>PPTX</h2>
+          <ul class="tl-list">
+            <li>{t(lang, 'roadmap.pptx.l1')}</li>
+            <li>{t(lang, 'roadmap.pptx.l2')}</li>
+          </ul>
+        </article>
+      </li>
+
+      <li class="tl-item tl-planned" data-reveal>
+        <div class="tl-marker" aria-hidden="true"><span class="tl-dot"></span></div>
+        <article class="tl-card">
+          <p class="tl-meta"><span class="tl-status">{t(lang, 'roadmap.status.planned')}</span><span class="tl-phase">OpenDocument</span></p>
+          <h2>{t(lang, 'roadmap.odf.h2')}</h2>
+          <ul class="tl-list">
+            <li set:html={t(lang, 'roadmap.odf.l1')} />
+            <li>{t(lang, 'roadmap.odf.l2')}</li>
+            <li set:html={t(lang, 'roadmap.odf.l3')} />
+          </ul>
+        </article>
+      </li>
+
+      <li class="tl-item tl-planned" data-reveal>
+        <div class="tl-marker" aria-hidden="true"><span class="tl-dot"></span></div>
+        <article class="tl-card">
+          <p class="tl-meta"><span class="tl-status">{t(lang, 'roadmap.status.planned')}</span><span class="tl-phase">{t(lang, 'roadmap.phase.products')}</span></p>
+          <h2>{t(lang, 'roadmap.products.h2')}</h2>
+          <ul class="tl-list">
+            <li set:html={t(lang, 'roadmap.products.l1')} />
+            <li set:html={t(lang, 'roadmap.products.l2')} />
+            <li set:html={t(lang, 'roadmap.products.l3')} />
+          </ul>
+        </article>
+      </li>
+
+      <li class="tl-item tl-planned" data-reveal>
+        <div class="tl-marker" aria-hidden="true"><span class="tl-dot"></span></div>
+        <article class="tl-card">
+          <p class="tl-meta"><span class="tl-status">{t(lang, 'roadmap.status.planned')}</span><span class="tl-phase">{t(lang, 'roadmap.phase.structure')}</span></p>
+          <h2>{t(lang, 'roadmap.split.h2')}</h2>
+          <p class="tl-note">{t(lang, 'roadmap.split.note')}</p>
+        </article>
+      </li>
+    </ol>
+  </section>
+</Base>

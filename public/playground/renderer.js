@@ -43,18 +43,21 @@ export function validateDocxFile(fileName, bytes) {
     return {
       valid: false,
       reason: "FILE_EMPTY",
-      error: "選取的檔案為 0 位元組，非有效 DOCX 文件。",
+      // error 僅供除錯與語言中立退回；顯示給使用者的文案由呼叫端依 reason
+      // 從 i18n 字串表取，本檔不承擔翻譯。
+      error: "selected file is 0 bytes, not a valid DOCX",
     };
   }
 
   // 檔名副檔名檢查
   const lowerName = (fileName || "").toLowerCase();
   if (lowerName && !lowerName.endsWith(".docx")) {
-    const ext = lowerName.includes(".") ? lowerName.slice(lowerName.lastIndexOf(".")) : "無副檔名";
+    const ext = lowerName.includes(".") ? lowerName.slice(lowerName.lastIndexOf(".")) : "";
     return {
       valid: false,
       reason: "INVALID_EXTENSION",
-      error: `檔案格式不支援：僅支援 .docx 格式，目前檔案為 [${ext}]。舊版 .doc 或其他格式請先轉存為 .docx。`,
+      ext,
+      error: `unsupported format: only .docx is supported, got [${ext}]`,
     };
   }
 
@@ -63,7 +66,7 @@ export function validateDocxFile(fileName, bytes) {
     return {
       valid: false,
       reason: "TOO_SHORT",
-      error: "檔案長度過短，非有效 Office Open XML (DOCX) 容器。",
+      error: "file too short to be an Office Open XML (DOCX) container",
     };
   }
 
@@ -72,7 +75,7 @@ export function validateDocxFile(fileName, bytes) {
     return {
       valid: false,
       reason: "NOT_ZIP_CONTAINER",
-      error: "格式非 DOCX：缺少標準 ZIP (PK) 容器標頭，請確認是否為標準 .docx 檔案。",
+      error: "not a DOCX: missing the standard ZIP (PK) container header",
     };
   }
 

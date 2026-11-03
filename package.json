@@ -10,7 +10,9 @@
     "prebuild": "node scripts/fetch-wasm.mjs || true",
     "build": "astro build",
     "preview": "astro preview",
-    "check:local": "node scripts/check-local-assets.mjs"
+    "check:local": "node scripts/check-local-assets.mjs",
+    "check:i18n": "node scripts/check-i18n.mjs",
+    "check": "npm run check:local && npm run check:i18n"
   },
   "license": "Apache-2.0",
   "dependencies": {
@@ -21,5 +23,8 @@
   "allowScripts": {
     "esbuild@0.27.7": true,
     "esbuild@0.25.12": true
+  },
+  "devDependencies": {
+    "opencc-js": "^1.4.2"
   }
 }
