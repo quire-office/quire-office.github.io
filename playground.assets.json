@@ -1,14 +1,14 @@
 {
   "$schema": "playground 頁面 WASM 引擎資產清單（進 git 的唯一信任來源）",
-  "version": "0.1.0-beta.4",
+  "version": "0.1.0-beta.5",
   "release_url_template": "https://github.com/quire-office/quire/releases/download/v{version}/{file}",
   "local_fallback_dir": "/home/jerry/projects/quire/shells/web/pkg/",
   "target_dir": "public/playground/",
   "assets": [
     {
       "file": "quire_web_bg.wasm",
-      "sha256": "18924cb2f3092603c690d1ba0f49c7b1b285da46f7da08651579a1531a548dc2",
-      "note": "Rust 排版核心 + shells/web 介接層之 wasm-bindgen 產物（raw 1,624,707 bytes，經本站 gzip 傳輸約 907 KB）。v0.1.0-beta.4：fdo76591 十四條排版實錘（tab 雙欄／字級粗體／上標／下劃線／黑底條／4pt 外框）＋WC048 表格邊框與發射序＋duotone 裝飾圖置中。"
+      "sha256": "863be3f89d5d0a76a783bf33c2b6903ff4c3d09a62e113d5a9cc19c631d77994",
+      "note": "Rust 排版核心 + shells/web 介接層之 wasm-bindgen 產物（raw 1,625,187 bytes，經本站 gzip 傳輸約 907 KB）。v0.1.0-beta.5：滿版外框行寬／空白段落帶推進／頁腳錨定底緣（fdo76591 版面分 1.000）＋裝飾圖 w:jc 置中＋頁首壓字／粗體推進／黑條寬度／tab 欄位停靠點。"
     },
     {
       "file": "quire_web.js",
