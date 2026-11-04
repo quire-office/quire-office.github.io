@@ -82,6 +82,13 @@ const { lang = 'en' } = Astro.props as { lang?: Lang };
             <li set:html={t(lang, 'roadmap.odf.l3')} />
             <li>{t(lang, 'roadmap.odf.l4')}</li>
           </ul>
+          <div class="tl-records">
+            <p class="tl-records-label">{t(lang, 'roadmap.records.progressLabel')}</p>
+            <ul class="tl-record-list">
+              <li><a href="https://github.com/quire-office/quire/commit/5b84323"><span class="tl-hash">5b84323</span>{t(lang, 'roadmap.odf.r1')}</a></li>
+              <li><a href="https://github.com/quire-office/quire/commit/b0a41c0"><span class="tl-hash">b0a41c0</span>{t(lang, 'roadmap.odf.r2')}</a></li>
+            </ul>
+          </div>
           <p class="tl-note">{t(lang, 'roadmap.odf.note')}</p>
         </article>
       </li>
