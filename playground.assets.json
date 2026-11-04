@@ -1,14 +1,14 @@
 {
   "$schema": "playground 頁面 WASM 引擎資產清單（進 git 的唯一信任來源）",
-  "version": "0.1.0-beta.3",
+  "version": "0.1.0-beta.4",
   "release_url_template": "https://github.com/quire-office/quire/releases/download/v{version}/{file}",
   "local_fallback_dir": "/home/jerry/projects/quire/shells/web/pkg/",
   "target_dir": "public/playground/",
   "assets": [
     {
       "file": "quire_web_bg.wasm",
-      "sha256": "ed5ca62d8a5ff204677b8c18665e611b85db95b840441f18c8ae3160a04a8035",
-      "note": "Rust 排版核心 + shells/web 介接層之 wasm-bindgen 產物（raw 1,602,808 bytes，經本站 gzip 傳輸約 900 KB）。v0.1.0-beta.3：EMF 內嵌 DIB 真像素＋VML textbox／群組尺寸修正。"
+      "sha256": "18924cb2f3092603c690d1ba0f49c7b1b285da46f7da08651579a1531a548dc2",
+      "note": "Rust 排版核心 + shells/web 介接層之 wasm-bindgen 產物（raw 1,624,707 bytes，經本站 gzip 傳輸約 907 KB）。v0.1.0-beta.4：fdo76591 十四條排版實錘（tab 雙欄／字級粗體／上標／下劃線／黑底條／4pt 外框）＋WC048 表格邊框與發射序＋duotone 裝飾圖置中。"
     },
     {
       "file": "quire_web.js",

@@ -142,13 +142,15 @@ code {
 }
 
 .skip-link {
+  /* 用位移移出視口而非 left:-9999px——負位移在部分行動瀏覽器會撐出可橫滾區域 */
   position: absolute;
-  left: -9999px;
+  top: 0;
+  left: 0;
+  transform: translateY(-200%);
 }
 
 .skip-link:focus {
-  left: 1rem;
-  top: 1rem;
+  transform: translateY(1rem);
   z-index: 10;
   background: var(--fg);
   color: var(--bg);
@@ -738,6 +740,11 @@ html.js body.nav-open .site-scrim { opacity: 1; visibility: visible; }
   padding: 0.25rem 0.6rem;
   color: var(--muted);
   margin-bottom: 1.1rem;
+  /* 手機防溢出：狀態膠囊字串長（ENGINE READY · 版本 · RUNS IN YOUR BROWSER），
+     窄屏必須可換行且不撐破容器；負 margin 抵銷末字 letter-spacing 的尾緣。 */
+  max-width: 100%;
+  overflow-wrap: anywhere;
+  margin-inline-end: -0.12em;
 }
 
 .spec {
