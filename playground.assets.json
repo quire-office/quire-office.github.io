@@ -1,14 +1,14 @@
 {
   "$schema": "playground 頁面 WASM 引擎資產清單（進 git 的唯一信任來源）",
-  "version": "0.1.0-beta.6",
+  "version": "0.1.0-beta.7",
   "release_url_template": "https://github.com/quire-office/quire/releases/download/v{version}/{file}",
   "local_fallback_dir": "/home/jerry/projects/quire/shells/web/pkg/",
   "target_dir": "public/playground/",
   "assets": [
     {
       "file": "quire_web_bg.wasm",
-      "sha256": "400d7a58d479649013a7b564fa0c083603802edbfd22d12afdd8d20dd4831d74",
-      "note": "Rust 排版核心 + shells/web 介接層之 wasm-bindgen 產物（raw 1,632,509 bytes，經本站 gzip 傳輸約 910 KB）。v0.1.0-beta.6：core/odf 容器層落地（50/50 byte-identical roundtrip）＋ODT 文字流投影首切片＋滿版外框 z 序收斂（CHRYSLER logo 不再被框線穿越）。"
+      "sha256": "ea675f0a4057d2fd89b9cc141d65fe8f56d2876c767ad5e69f224b4e4a109f07",
+      "note": "Rust 排版核心 + shells/web 介接層之 wasm-bindgen 產物（raw 1,670,704 bytes，經本站 gzip 傳輸約 927 KB）。v0.1.0-beta.7：quick-xml 0.41 安全升級（RUSTSEC-2026-0194/0195）＋直排三式真發射＋文字框內 DML 圖片＋跨欄表格切片與文末硬斷頁＋Trebuchet 行高族表。"
     },
     {
       "file": "quire_web.js",
