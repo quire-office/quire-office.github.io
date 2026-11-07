@@ -20,7 +20,7 @@ const I18N = (() => {
     ready: "Engine ready · {ver} · runs in your browser",
     readyNoVer: "Engine ready · runs in your browser",
     error: "Processing error · render not completed",
-    fetching: "Fetching the WASM engine from this site (about 1.59 MB / 927 KB gzip)…",
+    fetching: "Fetching the WASM engine from this site (about 1.66 MB / 956 KB gzip)…",
     downloading: "Downloading WASM engine: {got} / {total} ({pct}%)",
     downloadingNoTotal: "Downloading WASM engine: {got}",
     loaded: "WASM core loaded ({size}, {ms} ms, cached). Drop or choose a .docx file.",
