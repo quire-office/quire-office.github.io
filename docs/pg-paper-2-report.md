@@ -42,5 +42,5 @@ API 探針補充：`new WasmEngine(bytes)` 對同一語料的 `paper_json()` 為
 - 紙張覆寫只作用於首 section，這是 `new_with_paper` 的既有契約；多 section 分別設定不在本卡範圍。
 - 窄屏收合只在頁面初始載入時依 `matchMedia('(max-width: 640px)')` 決定；載入後才把視窗縮窄不會自動收合，仍可手動收合。
 - 自訂寬高或邊距在切換單位時不會自動換算既有數值，數值會被視為新單位解讀；目前要求使用者自行重填，若需自動換算可另立需求。
-- CSS 引用採 body 內的 `<link rel="stylesheet" href="/playground/playground-paper.css">`；`Base.astro` 沒有 head slot 且不在本卡白名單，瀏覽器可正常載入，但若要嚴格把 link 放進 `<head>`，需 PM 授權改 `Base.astro`。
+- ~~CSS 引用採 body 內的 `<link>`~~ **PM 已修正收口**：不動 `Base.astro`，改走 Astro 官方機制——`PlaygroundPage.astro` 以 `import '../styles/playground-paper.css'` 匯入（樣式檔同步移到 `src/styles/`），建置期自動 bundle 進 `<head>`。實測 `dist/playground/index.html` 兩支 stylesheet 皆落 head、`paper-panel` 規則在 `dist/_astro/playground.DQE2RKsG.css`（7,967 B）內，`npm run build`／`check`／`check:i18n` 全綠。
 - 引擎資產由 `npm run fetch:wasm` 取得，未提交進 repo；PM 覆核後若在乾淨環境建置，仍需先跑一次 `npm run fetch:wasm`（`prebuild` 已會自動嘗試）。

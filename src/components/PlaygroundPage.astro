@@ -1,5 +1,6 @@
 ---
 import Base from '../layouts/Base.astro';
+import '../styles/playground-paper.css';
 import { t, stringsFor } from '../i18n/ui';
 import type { Lang } from '../i18n/ui';
 // 引擎版本唯一信任來源＝playground.assets.json（fetch:wasm 依它拉 release 資產＋驗 sha256）。
@@ -33,7 +34,6 @@ jsStrings.ready = jsStrings.ready.replace('{ver}', engineVersion);
   path="/playground"
   lang={lang}
 >
-  <link rel="stylesheet" href="/playground/playground-paper.css" />
   <div id="pg-i18n" hidden data-strings={JSON.stringify(jsStrings)}></div>
   <section class="hero">
     <div class="wrap">
