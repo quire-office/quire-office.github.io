@@ -33,6 +33,7 @@ jsStrings.ready = jsStrings.ready.replace('{ver}', engineVersion);
   path="/playground"
   lang={lang}
 >
+  <link rel="stylesheet" href="/playground/playground-paper.css" />
   <div id="pg-i18n" hidden data-strings={JSON.stringify(jsStrings)}></div>
   <section class="hero">
     <div class="wrap">
@@ -91,6 +92,63 @@ jsStrings.ready = jsStrings.ready.replace('{ver}', engineVersion);
           <span class="doc-meta" id="doc-meta">{t(lang, 'pg.metaParas').replace('{n}', '0').replace('{w}', '595').replace('{h}', '842')}</span>
         </div>
       </div>
+
+      <!-- 紙張設定面板：與控制列同區，窄屏預設折疊；只在檔案載入後顯示 -->
+      <details class="paper-panel" id="paper-panel" open>
+        <summary class="paper-summary">{t(lang, 'pg.js.paper.title')}</summary>
+        <div class="paper-body">
+          <div class="paper-row">
+            <label class="paper-label" for="paper-preset">{t(lang, 'pg.js.paper.presetLabel')}</label>
+            <select id="paper-preset" class="paper-select">
+              <option value="doc">{t(lang, 'pg.js.paper.presetDoc')}</option>
+              <option value="a4">{t(lang, 'pg.js.paper.presetA4')}</option>
+              <option value="a3">{t(lang, 'pg.js.paper.presetA3')}</option>
+              <option value="a5">{t(lang, 'pg.js.paper.presetA5')}</option>
+              <option value="letter">{t(lang, 'pg.js.paper.presetLetter')}</option>
+              <option value="legal">{t(lang, 'pg.js.paper.presetLegal')}</option>
+              <option value="b5">{t(lang, 'pg.js.paper.presetB5')}</option>
+              <option value="custom">{t(lang, 'pg.js.paper.presetCustom')}</option>
+            </select>
+            <label class="paper-label" for="paper-unit">{t(lang, 'pg.js.paper.unitLabel')}</label>
+            <select id="paper-unit" class="paper-select paper-select-unit">
+              <option value="mm">{t(lang, 'pg.js.paper.unitMm')}</option>
+              <option value="cm">{t(lang, 'pg.js.paper.unitCm')}</option>
+              <option value="in">{t(lang, 'pg.js.paper.unitIn')}</option>
+              <option value="pt">{t(lang, 'pg.js.paper.unitPt')}</option>
+            </select>
+          </div>
+
+          <div class="paper-row paper-custom" id="paper-custom-row" hidden>
+            <label class="paper-label" for="paper-width">{t(lang, 'pg.js.paper.widthLabel')}</label>
+            <input id="paper-width" class="paper-input" type="number" inputmode="decimal" step="any" min="0" />
+            <span class="paper-times" aria-hidden="true">×</span>
+            <label class="paper-label" for="paper-height">{t(lang, 'pg.js.paper.heightLabel')}</label>
+            <input id="paper-height" class="paper-input" type="number" inputmode="decimal" step="any" min="0" />
+            <span class="paper-hint">{t(lang, 'pg.js.paper.customHint')}</span>
+          </div>
+
+          <fieldset class="paper-margins">
+            <legend class="paper-legend">{t(lang, 'pg.js.paper.marginsLegend')}</legend>
+            <div class="paper-row paper-margin-row">
+              <label class="paper-label" for="paper-margin-top">{t(lang, 'pg.js.paper.marginTop')}</label>
+              <input id="paper-margin-top" class="paper-input paper-input-margin" type="number" inputmode="decimal" step="any" min="0" placeholder={t(lang, 'pg.js.paper.marginPlaceholder')} />
+              <label class="paper-label" for="paper-margin-bottom">{t(lang, 'pg.js.paper.marginBottom')}</label>
+              <input id="paper-margin-bottom" class="paper-input paper-input-margin" type="number" inputmode="decimal" step="any" min="0" placeholder={t(lang, 'pg.js.paper.marginPlaceholder')} />
+              <label class="paper-label" for="paper-margin-left">{t(lang, 'pg.js.paper.marginLeft')}</label>
+              <input id="paper-margin-left" class="paper-input paper-input-margin" type="number" inputmode="decimal" step="any" min="0" placeholder={t(lang, 'pg.js.paper.marginPlaceholder')} />
+              <label class="paper-label" for="paper-margin-right">{t(lang, 'pg.js.paper.marginRight')}</label>
+              <input id="paper-margin-right" class="paper-input paper-input-margin" type="number" inputmode="decimal" step="any" min="0" placeholder={t(lang, 'pg.js.paper.marginPlaceholder')} />
+            </div>
+          </fieldset>
+
+          <div class="paper-actions">
+            <button type="button" class="btn btn-sm btn-ghost" id="paper-apply">{t(lang, 'pg.js.paper.apply')}</button>
+            <p class="paper-error" id="paper-error" role="alert" hidden></p>
+          </div>
+          <p class="paper-original" id="paper-original-line" hidden></p>
+          <p class="paper-status" id="paper-status"></p>
+        </div>
+      </details>
 
       <div class="canvas-viewport" id="canvas-viewport">
         <canvas id="render-canvas"></canvas>

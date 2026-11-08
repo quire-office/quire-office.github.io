@@ -1,0 +1,187 @@
+/* Quire Playground 紙張設定面板
+   沿用站體墨紙印刷語彙：直角、細線、等寬數值；不引入任何 UI 框架。
+   面板在文件流程內展開，不覆蓋畫布；窄屏由 JS 預設收合。 */
+
+.paper-panel {
+  border: 1px solid var(--rule);
+  background: var(--panel);
+  margin-bottom: 1.2rem;
+}
+
+/* 作者樣式的 display 會蓋掉 hidden 屬性的 UA 規則，這裡明確收斂 */
+.paper-panel [hidden] {
+  display: none !important;
+}
+
+.paper-summary {
+  cursor: pointer;
+  padding: 0.6rem 1rem;
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--fg);
+  list-style: none;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  user-select: none;
+}
+
+.paper-summary::-webkit-details-marker {
+  display: none;
+}
+
+.paper-summary::before {
+  content: "+";
+  font-family: var(--font-mono);
+  width: 1em;
+  display: inline-block;
+}
+
+.paper-panel[open] > .paper-summary::before {
+  content: "−";
+}
+
+.paper-summary:focus-visible {
+  outline: 2px solid var(--fg);
+  outline-offset: 2px;
+}
+
+.paper-body {
+  border-top: 1px solid var(--rule);
+  padding: 0.9rem 1rem 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.7rem;
+}
+
+.paper-row {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.45rem 0.6rem;
+}
+
+.paper-label {
+  font-family: var(--font-mono);
+  font-size: 0.74rem;
+  letter-spacing: 0.04em;
+  color: var(--muted);
+}
+
+.paper-select,
+.paper-input {
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+  color: var(--fg);
+  background: var(--bg);
+  border: 1px solid var(--rule);
+  border-radius: 0;
+  padding: 0.3rem 0.45rem;
+  line-height: 1.4;
+  min-height: 2rem;
+  color-scheme: light dark;
+}
+
+.paper-select:focus-visible,
+.paper-input:focus-visible {
+  outline: none;
+  border-color: var(--fg);
+}
+
+.paper-select-unit {
+  min-width: 4.5rem;
+}
+
+.paper-input {
+  width: 6.5rem;
+}
+
+.paper-input-margin {
+  width: 5.5rem;
+}
+
+.paper-times {
+  font-family: var(--font-mono);
+  color: var(--muted);
+}
+
+.paper-hint {
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  color: var(--muted);
+}
+
+.paper-margins {
+  border: 0;
+  border-top: 1px solid var(--rule);
+  margin: 0;
+  padding: 0.7rem 0 0;
+  min-width: 0;
+}
+
+.paper-legend {
+  font-family: var(--font-mono);
+  font-size: 0.74rem;
+  color: var(--muted);
+  padding: 0 0.4rem 0 0;
+}
+
+.paper-actions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.7rem;
+}
+
+.paper-error {
+  margin: 0;
+  font-family: var(--font-mono);
+  font-size: 0.76rem;
+  line-height: 1.5;
+  color: #c92a2a;
+  overflow-wrap: anywhere;
+}
+
+.paper-original,
+.paper-status {
+  margin: 0;
+  font-family: var(--font-mono);
+  font-size: 0.76rem;
+  line-height: 1.6;
+  color: var(--muted);
+  overflow-wrap: anywhere;
+}
+
+.paper-status {
+  color: var(--fg);
+}
+
+@media (max-width: 640px) {
+  .paper-row {
+    align-items: stretch;
+  }
+
+  .paper-label {
+    flex-basis: 100%;
+  }
+
+  .paper-select,
+  .paper-input,
+  .paper-input-margin {
+    width: 100%;
+  }
+
+  .paper-input-margin {
+    flex: 1 1 8rem;
+  }
+
+  .paper-times {
+    display: none;
+  }
+
+  .paper-hint {
+    flex-basis: 100%;
+  }
+}

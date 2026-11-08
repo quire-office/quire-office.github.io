@@ -65,6 +65,37 @@ const prevBtn = document.getElementById("prev-page-btn");
 const nextBtn = document.getElementById("next-page-btn");
 const pageInfo = document.getElementById("page-info");
 const docMeta = document.getElementById("doc-meta");
+const paperPanel = document.getElementById("paper-panel");
+const paperPreset = document.getElementById("paper-preset");
+const paperCustomRow = document.getElementById("paper-custom-row");
+const paperWidth = document.getElementById("paper-width");
+const paperHeight = document.getElementById("paper-height");
+const paperUnit = document.getElementById("paper-unit");
+const paperMarginTop = document.getElementById("paper-margin-top");
+const paperMarginBottom = document.getElementById("paper-margin-bottom");
+const paperMarginLeft = document.getElementById("paper-margin-left");
+const paperMarginRight = document.getElementById("paper-margin-right");
+const paperApply = document.getElementById("paper-apply");
+const paperError = document.getElementById("paper-error");
+const paperStatus = document.getElementById("paper-status");
+const paperOriginalLine = document.getElementById("paper-original-line");
+
+// 紙張設定：僅在檢視期覆寫，不寫回原檔。
+// 數值單位一律以 pt 送引擎；文件原始尺寸只從 paper_json() 讀取，不在站端自算。
+const PAPER_PRESETS = {
+  a4: { w: 595.28, h: 841.89 },
+  a3: { w: 841.89, h: 1190.55 },
+  a5: { w: 419.53, h: 595.28 },
+  letter: { w: 612, h: 792 },
+  legal: { w: 612, h: 1008 },
+  b5: { w: 498.9, h: 708.66 },
+};
+const PAPER_MIN_PT = 72;
+const PAPER_MAX_PT = 1584;
+const UNIT_TO_PT = { mm: 72 / 25.4, cm: 720 / 25.4, in: 72, pt: 1 };
+const PT_TO_MM = 25.4 / 72;
+let docBytes = null;
+let originalPaper = null;
 
 // 執行狀態
 let wasmReady = false;
@@ -270,6 +301,336 @@ function renderCurrentPage() {
 }
 
 /**
+ * 顯示紙張設定面板的行內錯誤（純文字，不彈窗）
+ * @param {string} key i18n key（不帶 pg.js. 前綴）
+ * @param {object} [vars]
+ */
+function showPaperError(key, vars) {
+  if (!paperError) return;
+  paperError.textContent = I18N.get(key, vars);
+  paperError.hidden = false;
+}
+
+/**
+ * 清除紙張設定面板的行內錯誤
+ */
+function clearPaperError() {
+  if (!paperError) return;
+  paperError.textContent = "";
+  paperError.hidden = true;
+}
+
+/**
+ * 數值單位換算為 pt
+ * @param {number} value
+ * @param {string} unit
+ * @returns {number}
+ */
+function toPt(value, unit) {
+  return value * (UNIT_TO_PT[unit] ?? 1);
+}
+
+/**
+ * 固定小數位輸出（僅供顯示；幾何數值本身一律取自 paper_json()）
+ * @param {number} value
+ * @param {number} [digits=2]
+ * @returns {string}
+ */
+function fmt(value, digits = 2) {
+  const n = Number(value);
+  return Number.isFinite(n) ? n.toFixed(digits) : "0";
+}
+
+/**
+ * 讀取並驗證紙張設定表單。
+ * 回傳 { settings } 或 { error, vars }；error 為 i18n key（不帶 pg.js. 前綴）。
+ * @returns {{settings?: object, error?: string, vars?: object}}
+ */
+function readPaperForm() {
+  const mode = paperPreset ? paperPreset.value : "doc";
+  const unit = paperUnit ? paperUnit.value : "mm";
+  const settings = {
+    mode,
+    unit,
+    widthPt: null,
+    heightPt: null,
+    margins: { top: undefined, bottom: undefined, left: undefined, right: undefined },
+  };
+
+  if (mode === "custom") {
+    const wRaw = paperWidth ? paperWidth.value.trim() : "";
+    const hRaw = paperHeight ? paperHeight.value.trim() : "";
+    if (!wRaw || !hRaw) return { error: "paper.errEmpty" };
+    const w = Number(wRaw);
+    const h = Number(hRaw);
+    if (!Number.isFinite(w) || !Number.isFinite(h)) return { error: "paper.errNaN" };
+    if (w <= 0 || h <= 0) {
+      return { error: "paper.errRange", vars: { min: PAPER_MIN_PT, max: PAPER_MAX_PT } };
+    }
+    settings.widthPt = toPt(w, unit);
+    settings.heightPt = toPt(h, unit);
+    if (
+      settings.widthPt < PAPER_MIN_PT ||
+      settings.widthPt > PAPER_MAX_PT ||
+      settings.heightPt < PAPER_MIN_PT ||
+      settings.heightPt > PAPER_MAX_PT
+    ) {
+      return { error: "paper.errRange", vars: { min: PAPER_MIN_PT, max: PAPER_MAX_PT } };
+    }
+  } else if (mode !== "doc") {
+    const preset = PAPER_PRESETS[mode];
+    if (!preset) return { error: "paper.errNaN" };
+    settings.widthPt = preset.w;
+    settings.heightPt = preset.h;
+  }
+
+  const marginEls = {
+    top: paperMarginTop,
+    bottom: paperMarginBottom,
+    left: paperMarginLeft,
+    right: paperMarginRight,
+  };
+  for (const [side, el] of Object.entries(marginEls)) {
+    const raw = el ? el.value.trim() : "";
+    if (raw === "") continue;
+    const v = Number(raw);
+    if (!Number.isFinite(v)) return { error: "paper.errMarginNaN" };
+    if (v < 0) return { error: "paper.errMarginNegative" };
+    settings.margins[side] = toPt(v, unit);
+  }
+
+  const effectiveWidthPt = mode === "doc" ? originalPaper?.page_w_pt : settings.widthPt;
+  const effectiveHeightPt = mode === "doc" ? originalPaper?.page_h_pt : settings.heightPt;
+  if (mode === "doc" && (!Number.isFinite(effectiveWidthPt) || !Number.isFinite(effectiveHeightPt))) {
+    return { error: "paper.errNoDoc" };
+  }
+  const sumX = (settings.margins.left ?? 0) + (settings.margins.right ?? 0);
+  const sumY = (settings.margins.top ?? 0) + (settings.margins.bottom ?? 0);
+  if (sumX >= effectiveWidthPt || sumY >= effectiveHeightPt) {
+    return { error: "paper.errMarginTooLarge" };
+  }
+
+  settings.effectiveWidthPt = effectiveWidthPt;
+  settings.effectiveHeightPt = effectiveHeightPt;
+  settings.override =
+    mode !== "doc" || Object.values(settings.margins).some((v) => v !== undefined);
+  return { settings };
+}
+
+/**
+ * 依紙張設定重建引擎；無覆寫時走既有 new WasmEngine(bytes) 路徑。
+ * @param {object} settings readPaperForm() 回傳的 settings
+ * @returns {WasmEngine}
+ */
+function buildEngineWithPaper(settings) {
+  if (!docBytes) throw new Error("no document bytes");
+  if (!settings.override) return new WasmEngine(docBytes);
+  return WasmEngine.new_with_paper(
+    docBytes,
+    settings.effectiveWidthPt,
+    settings.effectiveHeightPt,
+    settings.margins.top,
+    settings.margins.bottom,
+    settings.margins.left,
+    settings.margins.right
+  );
+}
+
+/**
+ * 以目前引擎的 paper_json() 更新狀態列；文件原始尺寸同樣只從 paper_json() 取。
+ */
+function updatePaperStatus() {
+  if (paperStatus) {
+    let pj = null;
+    if (currentEngine) {
+      try {
+        pj = JSON.parse(currentEngine.paper_json());
+      } catch (_) {
+        pj = null;
+      }
+    }
+    if (pj) {
+      const w = Number(pj.page_w_pt);
+      const h = Number(pj.page_h_pt);
+      const vars = {
+        w: fmt(w),
+        h: fmt(h),
+        wmm: fmt(w * PT_TO_MM, 1),
+        hmm: fmt(h * PT_TO_MM, 1),
+      };
+      paperStatus.textContent = I18N.get(
+        pj.paper_override_applied ? "paper.statusOverridden" : "paper.statusOriginal",
+        vars
+      );
+    } else {
+      paperStatus.textContent = "";
+    }
+  }
+
+  if (paperOriginalLine) {
+    const showOriginal = paperPreset && paperPreset.value === "doc" && originalPaper;
+    if (showOriginal) {
+      const w = Number(originalPaper.page_w_pt);
+      const h = Number(originalPaper.page_h_pt);
+      paperOriginalLine.textContent = I18N.get("paper.originalLine", {
+        w: fmt(w),
+        h: fmt(h),
+        wmm: fmt(w * PT_TO_MM, 1),
+        hmm: fmt(h * PT_TO_MM, 1),
+      });
+      paperOriginalLine.hidden = false;
+    } else {
+      paperOriginalLine.hidden = true;
+    }
+  }
+}
+
+/**
+ * 依紙型切換自訂欄位顯示，並同步狀態列。
+ */
+function syncPaperFormVisibility() {
+  if (paperCustomRow && paperPreset) {
+    paperCustomRow.hidden = paperPreset.value !== "custom";
+  }
+  updatePaperStatus();
+}
+
+/**
+ * 把目前生效的紙張設定寫進 URL query；文件原始且無覆寫時清空相關參數。
+ */
+function updatePaperUrl() {
+  if (typeof history === "undefined" || !window.location) return;
+  const url = new URL(window.location.href);
+  const params = url.searchParams;
+  ["paper", "pw", "ph", "u", "mt", "mb", "ml", "mr"].forEach((k) => params.delete(k));
+
+  let pj = null;
+  if (currentEngine) {
+    try {
+      pj = JSON.parse(currentEngine.paper_json());
+    } catch (_) {
+      pj = null;
+    }
+  }
+  if (pj && pj.paper_override_applied) {
+    const mode = paperPreset ? paperPreset.value : "doc";
+    if (mode === "custom") {
+      if (paperWidth) params.set("pw", paperWidth.value.trim());
+      if (paperHeight) params.set("ph", paperHeight.value.trim());
+    } else {
+      params.set("paper", mode);
+    }
+    params.set("u", paperUnit ? paperUnit.value : "mm");
+    const margins = {
+      mt: paperMarginTop,
+      mb: paperMarginBottom,
+      ml: paperMarginLeft,
+      mr: paperMarginRight,
+    };
+    for (const [key, el] of Object.entries(margins)) {
+      const v = el ? el.value.trim() : "";
+      if (v !== "") params.set(key, v);
+    }
+  }
+  history.replaceState(null, "", url);
+}
+
+/**
+ * 載入時還原 URL query 的紙張設定；檔案載入後即以此設定建引擎。
+ */
+function applyDeepLink() {
+  const params = new URLSearchParams(window.location.search);
+  const unit = params.get("u");
+  if (paperUnit && unit && ["mm", "cm", "in", "pt"].includes(unit)) {
+    paperUnit.value = unit;
+  }
+
+  const pw = params.get("pw");
+  const ph = params.get("ph");
+  const paper = params.get("paper");
+  if (paperPreset) {
+    if (pw !== null && ph !== null) {
+      paperPreset.value = "custom";
+      if (paperWidth) paperWidth.value = pw;
+      if (paperHeight) paperHeight.value = ph;
+    } else if (paper === "custom") {
+      paperPreset.value = "custom";
+    } else if (paper && (paper === "doc" || PAPER_PRESETS[paper])) {
+      paperPreset.value = paper;
+    }
+  }
+
+  const margins = {
+    mt: paperMarginTop,
+    mb: paperMarginBottom,
+    ml: paperMarginLeft,
+    mr: paperMarginRight,
+  };
+  for (const [key, el] of Object.entries(margins)) {
+    const v = params.get(key);
+    if (v !== null && el) el.value = v;
+  }
+  syncPaperFormVisibility();
+}
+
+/**
+ * 套用紙張設定：重建引擎、沿用既有重繪路徑，並在頁數變少時把 currentPage 歸零。
+ */
+async function applyPaperSettings() {
+  clearPaperError();
+  if (!docBytes) {
+    showPaperError("paper.errNoDoc");
+    return;
+  }
+  const parsed = readPaperForm();
+  if (parsed.error) {
+    showPaperError(parsed.error, parsed.vars);
+    return;
+  }
+  const settings = parsed.settings;
+  if (paperApply) paperApply.disabled = true;
+  if (statusChip) {
+    statusChip.textContent = I18N.get("paper.applying");
+    statusChip.className = "chip";
+  }
+  // 先讓瀏覽器繪出 loading 態，再做同步的重建與重排
+  await new Promise((resolve) => setTimeout(resolve, 0));
+
+  let engine;
+  try {
+    engine = buildEngineWithPaper(settings);
+  } catch (err) {
+    if (paperApply) paperApply.disabled = false;
+    if (statusChip) {
+      statusChip.textContent = I18N.get("renderDone");
+      statusChip.className = "chip chip-success";
+    }
+    showPaperError("paper.errApply", { msg: err.message || String(err) });
+    return;
+  }
+
+  currentEngine = engine;
+  const totalPages = currentEngine.page_count();
+  if (currentPage >= totalPages || currentPage < 0) currentPage = 0;
+
+  if (statusChip) {
+    statusChip.textContent = I18N.get("renderDone");
+    statusChip.className = "chip chip-success";
+  }
+  if (statusDesc) {
+    statusDesc.textContent = I18N.get("renderDoneDesc", {
+      name: currentFileName,
+      size: formatBytes(docBytes.length),
+      pages: totalPages,
+    });
+  }
+  updatePaperStatus();
+  updatePaperUrl();
+  renderCurrentPage();
+  if (paperApply) paperApply.disabled = false;
+}
+
+/**
  * 處理使用者拖入或選取的 DOCX 檔案
  * @param {File} file
  */
@@ -318,10 +679,13 @@ async function handleFile(file) {
     }
   }
 
-  // 3) 透過 WasmEngine 開啟文件
+  // 3) 透過 WasmEngine 開啟文件；先以原檔建立基準引擎，取得文件原始幾何。
+  docBytes = bytes;
+  clearPaperError();
   let engine;
   try {
     engine = new WasmEngine(bytes);
+    originalPaper = JSON.parse(engine.paper_json());
   } catch (err) {
     console.error("WasmEngine 解析錯誤：", err);
     showError(
@@ -330,6 +694,18 @@ async function handleFile(file) {
       file.name
     );
     return;
+  }
+
+  // 3b) 若面板／深連結指定了紙張覆寫，改用 new_with_paper 重建；設定不合法時保留原檔並行內提示。
+  const paperParsed = readPaperForm();
+  if (paperParsed.error) {
+    showPaperError(paperParsed.error, paperParsed.vars);
+  } else if (paperParsed.settings.override) {
+    try {
+      engine = buildEngineWithPaper(paperParsed.settings);
+    } catch (err) {
+      showPaperError("paper.errApply", { msg: err.message || String(err) });
+    }
   }
 
   // 4) 檢驗分頁結果
@@ -364,6 +740,8 @@ async function handleFile(file) {
         statusDesc.textContent = I18N.get("renderDoneDesc", { name: file.name, size: formatBytes(file.size), pages: pageCount });
   }
 
+  updatePaperStatus();
+  updatePaperUrl();
   renderCurrentPage();
 
   // 平滑滾動至檢視區
@@ -451,8 +829,21 @@ function setupUI() {
       renderCurrentPage();
     }
   });
+
+  // 紙張設定面板：只有「套用」才重建引擎，避免每鍵一次全量重排
+  if (paperPreset) {
+    paperPreset.addEventListener("change", syncPaperFormVisibility);
+  }
+  if (paperApply) {
+    paperApply.addEventListener("click", applyPaperSettings);
+  }
+  // 窄屏預設收合，展開後仍在文件流程內，不遮蓋畫布
+  if (paperPanel && typeof window.matchMedia === "function" && window.matchMedia("(max-width: 640px)").matches) {
+    paperPanel.open = false;
+  }
 }
 
 // 初始化啟動
 setupUI();
+applyDeepLink();
 wasmInitPromise = loadWasm();
