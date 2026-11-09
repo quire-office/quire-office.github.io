@@ -33,6 +33,44 @@ export function formatBytes(bytes) {
 }
 
 /**
+ * 正規化檔名供副檔名比對：去掉首尾所有 Unicode 空白（含全形空格 U+3000、
+ * NBSP U+00A0）與不可見控制字元（零寬 U+200B–200D、U+2060、BOM U+FEFF，
+ * 以及雙向格式字元 U+200E–200F／U+202A–202E／U+2066–2069）。
+ * 只動首尾、不動檔名中間，避免把使用者看得見的檔名改錯。
+ * @param {string} fileName
+ * @returns {string} 小寫化的正規檔名
+ */
+export function normalizeFileName(fileName) {
+  const raw = String(fileName || "");
+  const strip =
+    " \\t\\n\\r\\f\\v\\u00a0\\u1680\\u2000-\\u200f\\u2028\\u2029\\u202a-\\u202e\\u205f\\u2060-\\u2069\\u3000\\ufeff";
+  return raw.replace(new RegExp(`^[${strip}]+|[${strip}]+$`, "g"), "").toLowerCase();
+}
+
+/**
+ * 掃 ZIP 中央目錄的明文 entry 名稱辨識容器種類（副檔名不可信時的退回路徑）。
+ * ODT 一定有 `mimetype` 條目且內容為 ODF MIME；DOCX 一定有 `word/document.xml`。
+ * 兩者皆明文存於 entry 名稱，故 bytes 直接掃即可，不必解 ZIP。
+ * @param {Uint8Array} bytes
+ * @returns {"docx"|"odt"|null}
+ */
+export function sniffContainerKind(bytes) {
+  if (!bytes || bytes.byteLength < 4) return null;
+  if (!(bytes[0] === 0x50 && bytes[1] === 0x4b)) return null; // 非 ZIP 不猜
+  const needle = (s) => {
+    const n = new TextEncoder().encode(s);
+    outer: for (let i = 0; i + n.length <= bytes.length; i++) {
+      for (let j = 0; j < n.length; j++) if (bytes[i + j] !== n[j]) continue outer;
+      return true;
+    }
+    return false;
+  };
+  if (needle("word/document.xml")) return "docx";
+  if (needle("application/vnd.oasis.opendocument.text")) return "odt";
+  return null;
+}
+
+/**
  * 檢驗是否符合唯讀渲染支援的容器格式（DOCX／ODT，兩者皆 ZIP 容器），
  * 並回傳格式種類供呼叫端分派引擎（WasmEngine／WasmOdtView）。
  * @param {string} fileName
@@ -50,9 +88,17 @@ export function validateDocumentFile(fileName, bytes) {
     };
   }
 
-  // 檔名副檔名檢查：.docx 走 OOXML 引擎、.odt 走 ODF 唯讀引擎
-  const lowerName = (fileName || "").toLowerCase();
-  const kind = lowerName.endsWith(".docx") ? "docx" : lowerName.endsWith(".odt") ? "odt" : null;
+  // 檔名副檔名檢查：.docx 走 OOXML 引擎、.odt 走 ODF 唯讀引擎。
+  // 先正規化——行動裝置的檔案 App 與 CJK 檔名常把雙向／零寬／BOM 字元
+  // 留在副檔名之後（例：“無題 1.odt\u200E”），此時 endsWith(".odt") 會失敗並
+  // 回報「this file is [.odt]」這種自相矛盾的訊息（用戶 11-09 實測踩到）。
+  const lowerName = normalizeFileName(fileName);
+  let kind = lowerName.endsWith(".docx") ? "docx" : lowerName.endsWith(".odt") ? "odt" : null;
+  // 副檔名判不出來時不硬擋：ZIP 的 entry 名稱在中央目錄是明文存的，直接掃
+  // 特徵路徑就能認出真實容器（word/document.xml＝DOCX，
+  // application/vnd.oasis.opendocument.text＝ODT）。改檔名／副檔名帶雜訊字元都仍可渲染。
+  const sniffed = kind ? null : sniffContainerKind(bytes);
+  if (!kind && sniffed) kind = sniffed;
   if (!kind) {
     const ext = lowerName.includes(".") ? lowerName.slice(lowerName.lastIndexOf(".")) : "";
     return {
