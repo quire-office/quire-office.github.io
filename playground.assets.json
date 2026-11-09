@@ -1,18 +1,18 @@
 {
   "$schema": "playground 頁面 WASM 引擎資產清單（進 git 的唯一信任來源）",
-  "version": "0.1.0-beta.9",
+  "version": "0.1.0-beta.10",
   "release_url_template": "https://github.com/quire-office/quire/releases/download/v{version}/{file}",
   "local_fallback_dir": "/home/jerry/projects/quire/shells/web/pkg/",
   "target_dir": "public/playground/",
   "assets": [
     {
       "file": "quire_web_bg.wasm",
-      "sha256": "05b48608dc18d19285ae97e8c7f7ece7b9331d4b823df3e617a8d425f3dadde3",
-      "note": "Rust 排版核心 + shells/web 介接層之 wasm-bindgen 產物（raw 1,758,917 bytes，經本站 gzip 傳輸約 963 KB）。v0.1.0-beta.9：引擎紙張覆寫 API（new_with_paper／paper_json，playground 自由紙張前段）＋ODF 文字流丟字歸零。"
+      "sha256": "7a8a929f19a1c6651c8e408b5d39fef757fa0481fa2c91ecd4a82651f33de0dc",
+      "note": "Rust 排版核心 + shells/web 介接層之 wasm-bindgen 產物（raw 1,884,522 bytes，經本站 gzip 傳輸約 1,012 KB）。v0.1.0-beta.10：ODT 顯示列表發射（OdtView）＋wasm WasmOdtView 唯讀入口（ODT 上 playground）＋ODT 頁面幾何鏈。"
     },
     {
       "file": "quire_web.js",
-      "sha256": "5ec15c561b7d653ec18864a5144c580bb6c95f4a9cbace816247f16bb799871c",
+      "sha256": "aadacfbbe9e2556642deaf428dc295aeb3217705b26e5226107255689047fd44",
       "note": "對應的 wasm-bindgen 膠水層（ESM）"
     }
   ]

@@ -50,13 +50,13 @@ jsStrings.ready = jsStrings.ready.replace('{ver}', engineVersion);
   <section class="wrap">
     <!-- 拖放與選檔區域：用 label 做觸發器——手機瀏覽器對隱藏 input 的
          JS .click() 常被攔，label 的原生輕觸啟用是唯一全平台可靠路徑。
-         accept 必須帶 MIME：Android 檔案 App 依 MIME 過濾，只給 .docx
-         副檔名會導致選檔清單全灰（手機無法選檔的根因）。 -->
+         accept 必須帶 MIME：Android 檔案 App 依 MIME 過濾，只給副檔名會導致
+         選檔清單全灰（手機無法選檔的根因）。DOCX 與 ODT 各自的 MIME 都要列齊。 -->
     <label class="dropzone" id="dropzone" for="file-input">
       <!-- 不可用 display:none：隱藏的 control 在桌面瀏覽器連 label 啟用一起失效，
            改用視覺隱藏（保留 layout 與可啟用性），label 輕觸與 JS .click() 兩路都通 -->
       <input type="file" id="file-input"
-             accept=".docx,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/zip"
+             accept=".docx,.odt,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/vnd.oasis.opendocument.text,application/zip"
              class="dz-file" />
       <span class="chip" id="wasm-status-chip" data-engine-version={engineVersion}>{t(lang, 'pg.js.loading')}</span>
       <p class="dz-title" set:html={t(lang, 'pg.dzTitle')} />
@@ -144,6 +144,7 @@ jsStrings.ready = jsStrings.ready.replace('{ver}', engineVersion);
           <div class="paper-actions">
             <button type="button" class="btn btn-sm btn-ghost" id="paper-apply">{t(lang, 'pg.js.paper.apply')}</button>
             <p class="paper-error" id="paper-error" role="alert" hidden></p>
+            <p class="paper-hint" id="paper-odt-note" hidden>{t(lang, 'pg.js.paperOdtNote')}</p>
           </div>
           <p class="paper-original" id="paper-original-line" hidden></p>
           <p class="paper-status" id="paper-status"></p>

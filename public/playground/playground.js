@@ -2,10 +2,10 @@
 // 實作：流式下載 WASM、File API 拖放/選取、分頁渲染、具體錯誤分類與提示。
 // 依據規格：唯讀渲染（不含 IME / 編輯面），支援純 in-tab 離線處理。
 
-import init, { WasmEngine } from "./quire_web.js";
+import init, { WasmEngine, WasmOdtView } from "./quire_web.js";
 import {
   formatBytes,
-  validateDocxFile,
+  validateDocumentFile,
   renderDisplayListToCanvas,
 } from "./renderer.js";
 
@@ -20,21 +20,23 @@ const I18N = (() => {
     ready: "Engine ready · {ver} · runs in your browser",
     readyNoVer: "Engine ready · runs in your browser",
     error: "Processing error · render not completed",
-    fetching: "Fetching the WASM engine from this site (about 1.68 MB / 963 KB gzip)…",
+    fetching: "Fetching the WASM engine from this site (about 1.80 MB / 1012 KB gzip)…",
     downloading: "Downloading WASM engine: {got} / {total} ({pct}%)",
     downloadingNoTotal: "Downloading WASM engine: {got}",
-    loaded: "WASM core loaded ({size}, {ms} ms, cached). Drop or choose a .docx file.",
+    loaded: "WASM core loaded ({size}, {ms} ms, cached). Drop or choose a .docx or .odt file.",
     reading: "Reading file “{name}” ({size})…",
     waitingEngine: "Waiting for the WASM engine to finish loading…",
     errMissingTitle: "Engine asset missing",
     errMissingDetail: "This build is missing the WASM engine asset (/playground/quire_web_bg.wasm returned 404). By policy the engine binary is not committed to the web repo — run “npm run fetch:wasm” in this repo's root, then rebuild.",
     pageOf: "Page {cur} / {total}",
     metaParas: "{n} paragraphs in the document · page width {w} pt · page height {h} pt",
-    validateFileEmpty: "The selected file is 0 bytes — not a valid DOCX.",
-    validateBadExt: "Format not supported: only .docx is accepted, this file is [{ext}]. Convert older .doc or other formats to .docx first.",
+    validateFileEmpty: "The selected file is 0 bytes — not a valid DOCX or ODT.",
+    validateBadExt: "Format not supported: only .docx and .odt are accepted, this file is [{ext}]. Convert older .doc or other formats to .docx first.",
+    paperOdtNote: "Open Document Text (.odt) renders read-only: paper override is not available for ODT yet.",
+    "paper.errOdtOverride": "Paper override is not available for .odt files — the ODT pipeline is read-only rendering. Re-load a .docx to change paper size.",
     validateNoExt: "no extension",
-    validateTooShort: "The file is too short to be a valid Office Open XML (DOCX) container.",
-    validateNotZip: "Not a DOCX: the standard ZIP (PK) container header is missing.",
+    validateTooShort: "The file is too short to be a valid DOCX or ODT container.",
+    validateNotZip: "Not a DOCX/ODT: the standard ZIP (PK) container header is missing.",
   };
   let got = {};
   try {
@@ -64,6 +66,7 @@ const canvas = document.getElementById("render-canvas");
 const prevBtn = document.getElementById("prev-page-btn");
 const nextBtn = document.getElementById("next-page-btn");
 const pageInfo = document.getElementById("page-info");
+const paperOdtNote = document.getElementById("paper-odt-note");
 const docMeta = document.getElementById("doc-meta");
 const paperPanel = document.getElementById("paper-panel");
 const paperPreset = document.getElementById("paper-preset");
@@ -95,6 +98,7 @@ const PAPER_MAX_PT = 1584;
 const UNIT_TO_PT = { mm: 72 / 25.4, cm: 720 / 25.4, in: 72, pt: 1 };
 const PT_TO_MM = 25.4 / 72;
 let docBytes = null;
+let docKind = "docx";
 let originalPaper = null;
 
 // 執行狀態
@@ -419,11 +423,17 @@ function readPaperForm() {
 
 /**
  * 依紙張設定重建引擎；無覆寫時走既有 new WasmEngine(bytes) 路徑。
+ * ODT（WasmOdtView）無構造期覆寫契約，指定覆寫時丟錯交由行內提示呈現。
  * @param {object} settings readPaperForm() 回傳的 settings
- * @returns {WasmEngine}
+ * @returns {WasmEngine|WasmOdtView}
  */
 function buildEngineWithPaper(settings) {
   if (!docBytes) throw new Error("no document bytes");
+  if (docKind === "odt") {
+    // ODT 線目前只有唯讀渲染（WasmOdtView 不暴露構造期紙張覆寫），
+    // 引擎端未實作即不假裝支援——由呼叫端顯示行內提示。
+    throw new Error("odt-override-unsupported");
+  }
   if (!settings.override) return new WasmEngine(docBytes);
   return WasmEngine.new_with_paper(
     docBytes,
@@ -483,6 +493,20 @@ function updatePaperStatus() {
       paperOriginalLine.hidden = true;
     }
   }
+}
+
+/**
+ * 依文件種類啟停紙張覆寫控件：ODT 線只有唯讀渲染（引擎端無構造期覆寫契約），
+ * 故 ODT 載入時停用控件並顯示說明，不讓使用者以為覆寫生效。
+ * @param {boolean} overrideSupported
+ */
+function setPaperPanelEnabled(overrideSupported) {
+  const controls = [paperPreset, paperUnit, paperWidth, paperHeight,
+    paperMarginTop, paperMarginBottom, paperMarginLeft, paperMarginRight, paperApply];
+  controls.forEach((el) => {
+    if (el) el.disabled = !overrideSupported;
+  });
+  if (paperOdtNote) paperOdtNote.hidden = overrideSupported;
 }
 
 /**
@@ -582,6 +606,10 @@ async function applyPaperSettings() {
     showPaperError("paper.errNoDoc");
     return;
   }
+  if (docKind === "odt") {
+    showPaperError("paper.errOdtOverride");
+    return;
+  }
   const parsed = readPaperForm();
   if (parsed.error) {
     showPaperError(parsed.error, parsed.vars);
@@ -605,7 +633,11 @@ async function applyPaperSettings() {
       statusChip.textContent = I18N.get("renderDone");
       statusChip.className = "chip chip-success";
     }
-    showPaperError("paper.errApply", { msg: err.message || String(err) });
+    if (String(err && err.message).includes("odt-override-unsupported")) {
+      showPaperError("paper.errOdtOverride");
+    } else {
+      showPaperError("paper.errApply", { msg: err.message || String(err) });
+    }
     return;
   }
 
@@ -650,7 +682,7 @@ async function handleFile(file) {
   }
 
   // 1) 格式校驗（副檔名、大小、ZIP/PK 容器）
-  const validation = validateDocxFile(file.name, bytes);
+  const validation = validateDocumentFile(file.name, bytes);
   if (!validation.valid) {
         // 校驗失敗的顯示文案依 reason 從字串表取（reason 是穩定契約，字串可譯）；
     // 查不到 reason 時退回 renderer 給的語言中立描述，不顯示空白。
@@ -679,12 +711,15 @@ async function handleFile(file) {
     }
   }
 
-  // 3) 透過 WasmEngine 開啟文件；先以原檔建立基準引擎，取得文件原始幾何。
+  // 3) 依容器種類開啟文件：.docx 走 WasmEngine（可覆寫紙張），
+  //    .odt 走 WasmOdtView（唯讀渲染；引擎端無紙張覆寫契約，故不套覆寫）。
   docBytes = bytes;
+  docKind = validation.kind || "docx";
   clearPaperError();
+  setPaperPanelEnabled(docKind === "docx");
   let engine;
   try {
-    engine = new WasmEngine(bytes);
+    engine = docKind === "odt" ? new WasmOdtView(bytes) : new WasmEngine(bytes);
     originalPaper = JSON.parse(engine.paper_json());
   } catch (err) {
     console.error("WasmEngine 解析錯誤：", err);
@@ -704,7 +739,11 @@ async function handleFile(file) {
     try {
       engine = buildEngineWithPaper(paperParsed.settings);
     } catch (err) {
-      showPaperError("paper.errApply", { msg: err.message || String(err) });
+      if (String(err && err.message).includes("odt-override-unsupported")) {
+        showPaperError("paper.errOdtOverride");
+      } else {
+        showPaperError("paper.errApply", { msg: err.message || String(err) });
+      }
     }
   }
 

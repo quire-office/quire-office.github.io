@@ -33,31 +33,33 @@ export function formatBytes(bytes) {
 }
 
 /**
- * 檢驗是否符合 DOCX 基礎格式（檢查檔名與 ZIP PK 魔術位元組）
+ * 檢驗是否符合唯讀渲染支援的容器格式（DOCX／ODT，兩者皆 ZIP 容器），
+ * 並回傳格式種類供呼叫端分派引擎（WasmEngine／WasmOdtView）。
  * @param {string} fileName
  * @param {Uint8Array} bytes
- * @returns {{ valid: boolean, error?: string, reason?: string }}
+ * @returns {{ valid: boolean, kind?: "docx"|"odt", error?: string, reason?: string, ext?: string }}
  */
-export function validateDocxFile(fileName, bytes) {
+export function validateDocumentFile(fileName, bytes) {
   if (!bytes || bytes.byteLength === 0) {
     return {
       valid: false,
       reason: "FILE_EMPTY",
       // error 僅供除錯與語言中立退回；顯示給使用者的文案由呼叫端依 reason
       // 從 i18n 字串表取，本檔不承擔翻譯。
-      error: "selected file is 0 bytes, not a valid DOCX",
+      error: "selected file is 0 bytes, not a valid DOCX/ODT",
     };
   }
 
-  // 檔名副檔名檢查
+  // 檔名副檔名檢查：.docx 走 OOXML 引擎、.odt 走 ODF 唯讀引擎
   const lowerName = (fileName || "").toLowerCase();
-  if (lowerName && !lowerName.endsWith(".docx")) {
+  const kind = lowerName.endsWith(".docx") ? "docx" : lowerName.endsWith(".odt") ? "odt" : null;
+  if (!kind) {
     const ext = lowerName.includes(".") ? lowerName.slice(lowerName.lastIndexOf(".")) : "";
     return {
       valid: false,
       reason: "INVALID_EXTENSION",
       ext,
-      error: `unsupported format: only .docx is supported, got [${ext}]`,
+      error: `unsupported format: only .docx and .odt are supported, got [${ext}]`,
     };
   }
 
@@ -75,11 +77,11 @@ export function validateDocxFile(fileName, bytes) {
     return {
       valid: false,
       reason: "NOT_ZIP_CONTAINER",
-      error: "not a DOCX: missing the standard ZIP (PK) container header",
+      error: "not a DOCX/ODT: missing the standard ZIP (PK) container header",
     };
   }
 
-  return { valid: true };
+  return { valid: true, kind };
 }
 
 /**
