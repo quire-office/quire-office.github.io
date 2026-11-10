@@ -131,19 +131,78 @@ export function validateDocumentFile(fileName, bytes) {
 }
 
 /**
+ * 解碼單一 Image 項目的 base64 像素為可繪元素。
+ * 失敗回傳 null（呼叫端跳過該項，絕不拋錯擋掉整頁渲染）；3 秒逾時同樣回 null——
+ * 解碼卡死屬解譯器／瀏覽器極端例外，寧可缺圖不可白頁。
+ * @param {{mime?: string, data_b64?: string}} img
+ * @returns {Promise<HTMLImageElement|null>}
+ */
+function decodeImageItem(img) {
+  return new Promise((resolve) => {
+    const b64 = img && img.data_b64;
+    if (!b64) {
+      resolve(null);
+      return;
+    }
+    const mime = img.mime || "image/png";
+    const el = new Image();
+    let done = false;
+    const finish = (v) => {
+      if (!done) {
+        done = true;
+        clearTimeout(timer);
+        resolve(v);
+      }
+    };
+    const timer = setTimeout(() => finish(null), 3000);
+    el.onload = () => finish(el);
+    el.onerror = () => finish(null);
+    el.src = `data:${mime};base64,${b64}`;
+  });
+}
+
+// 渲染代次記號：分頁快速連點時，舊一輪的異步解碼完成後不得再繪到新內容上。
+let renderToken = 0;
+
+/**
  * 繪製單頁顯示列表至 HTML5 Canvas
+ *
+ * 鐵律：顯示列表契約（core/render-trait DrawItem）有四類項目——Rect／Rule／Text／
+ * Image，四者都必須有分支；Image 項的像素以 base64 自帶於顯示列表（跨 wasm 邊界
+ * 零 IO），過去本檔漏了 Image 分支導致所有內嵌圖片在 playground 靜默消失
+ * （引擎與 SVG 端都正常，只有站端不見）。
+ *
+ * Image 解碼是異步的：先平行解碼本頁所有圖，再走單一同步繪製迴圈——
+ * 如此 z 序仍嚴格按顯示列表序（圖在填充之後、文字之前），無須在文字之上補畫。
+ *
  * @param {object} dl 顯示列表 JSON 物件
  * @param {HTMLCanvasElement} canvas
  * @param {number} [displayWidthPx=DEFAULT_DISPLAY_WIDTH_PX]
- * @returns {{ scale: number, width: number, height: number }}
+ * @returns {Promise<{ scale: number, width: number, height: number }|null>}
+ *          null＝本次繪製已被更新的渲染取代（呼叫端可忽略）
  */
-export function renderDisplayListToCanvas(dl, canvas, displayWidthPx = DEFAULT_DISPLAY_WIDTH_PX) {
+export async function renderDisplayListToCanvas(dl, canvas, displayWidthPx = DEFAULT_DISPLAY_WIDTH_PX) {
   const ctx = canvas.getContext("2d");
   if (!ctx) throw new Error("無法取得 Canvas 2D 繪圖上下文");
 
   const widthPt = dl.width_pt || 595;
   const heightPt = dl.height_pt || 842;
   const scale = displayWidthPx / widthPt;
+
+  // 本輪代次：在任何 await 之前先搶代次號——更快發起的渲染輪會把計數推高，
+  // 舊輪解碼完成時發現自己不是最新輪即作廢，不會把舊頁畫到新頁上。
+  const myToken = ++renderToken;
+
+  const items = Array.isArray(dl.items) ? dl.items : [];
+
+  // 先平行解碼全部圖片（異步段）；任何一張失敗只影響該張的顯示。
+  const decoded = await Promise.all(
+    items.map((item) => (item && item.Image ? decodeImageItem(item.Image) : Promise.resolve(null))),
+  );
+
+  // 解碼期間已被更快的一輪渲染取代：作廢本輪，連清畫布都不做（新輪自會重繪）。
+  if (renderToken !== myToken) return null;
+  canvas.__quireRenderToken = myToken;
 
   canvas.width = Math.round(widthPt * scale);
   canvas.height = Math.round(heightPt * scale);
@@ -152,9 +211,17 @@ export function renderDisplayListToCanvas(dl, canvas, displayWidthPx = DEFAULT_D
   ctx.fillStyle = "#ffffff";
   ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-  const items = Array.isArray(dl.items) ? dl.items : [];
-
-  for (const item of items) {
+  for (let i = 0; i < items.length; i += 1) {
+    const item = items[i];
+    // 0) 內嵌圖片（K4c-image）：data_b64 已是引擎處理後像素（含 duotone），照繪。
+    if (item.Image) {
+      const el = decoded[i];
+      if (el) {
+        const im = item.Image;
+        ctx.drawImage(el, (im.x || 0) * scale, (im.y || 0) * scale, (im.w || 0) * scale, (im.h || 0) * scale);
+      }
+      continue;
+    }
     // 1) 矩形色塊（背景、底色等）
     if (item.Rect) {
       const r = item.Rect;

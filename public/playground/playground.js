@@ -250,7 +250,7 @@ function scheduleIdleReflow() {
 /**
  * 渲染當前頁面至 Canvas
  */
-function renderCurrentPage() {
+async function renderCurrentPage() {
   if (!currentEngine || !canvas) return;
 
   const totalPages = currentEngine.page_count();
