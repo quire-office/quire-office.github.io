@@ -1,14 +1,14 @@
 {
   "$schema": "playground 頁面 WASM 引擎資產清單（進 git 的唯一信任來源）",
-  "version": "0.1.0-beta.10",
+  "version": "0.1.0-beta.11",
   "release_url_template": "https://github.com/quire-office/quire/releases/download/v{version}/{file}",
   "local_fallback_dir": "/home/jerry/projects/quire/shells/web/pkg/",
   "target_dir": "public/playground/",
   "assets": [
     {
       "file": "quire_web_bg.wasm",
-      "sha256": "7a8a929f19a1c6651c8e408b5d39fef757fa0481fa2c91ecd4a82651f33de0dc",
-      "note": "Rust 排版核心 + shells/web 介接層之 wasm-bindgen 產物（raw 1,884,522 bytes，經本站 gzip 傳輸約 1,012 KB）。v0.1.0-beta.10：ODT 顯示列表發射（OdtView）＋wasm WasmOdtView 唯讀入口（ODT 上 playground）＋ODT 頁面幾何鏈。"
+      "sha256": "387ea470ec7c550571a1910f97bcef549f1c9c23b4b16c20c9d20f63f81da453",
+      "note": "Rust 排版核心 + shells/web 介接層之 wasm-bindgen 產物（raw 1,924,804 bytes，經本站 gzip 傳輸量於發版驗證實測）。v0.1.0-beta.11：D9b 框內圖與滿版外框幾何資料化（去字面量，同源推導式）＋ODF E2b/E2c/E2d（隱藏 section、圖形替代文字、頁首尾投影）＋DOCX 排版收斂（G1 錨點圖、Trebuchet 垂直尺 1.1611、xml:space 節點級空白口徑、內嵌子集標點 advance）。"
     },
     {
       "file": "quire_web.js",
