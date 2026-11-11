@@ -300,7 +300,7 @@
   "roadmap.odf.note": "Priority note: the word-family formats (ODT and legacy DOC) now precede PPTX — the editor should cover the most common document formats before presentations.",
   "roadmap.odf.r1": "50-file ODT corpus with licensing and a container-level survey (report-only)",
   "roadmap.odf.r2": "ODF design doc fixed and accepted: real code anchors, anchor-gate zeroed",
-  "roadmap.odf.r3": "<a href=\"https://github.com/quire-office/quire/commit/9ccc97c\"><code>9ccc97c</code></a> <code>core/odf</code> container crate + ODT layout projection live in the playground (engine v0.1.0-beta.11, anonymous trial)",
+  "roadmap.odf.r3": "<a href=\"https://github.com/quire-office/quire/commit/735fae5\"><code>735fae5</code></a> Container crate + ODT layout projection (headers/footers included) shipped as engine beta.11; the playground opens anonymous .odt trials",
   "roadmap.doc.h2": "Legacy DOC (binary Word)",
   "roadmap.doc.l1": "The pre-OOXML binary format lives in an OLE compound file, not OPC — its own parser lane, reusing the same layout and shaping crates downstream.",
   "roadmap.doc.l2": "First read-only rendering of real <code>.doc</code> files with untouched-stream preservation; the save path comes after the read model proves out.",
