@@ -34,6 +34,7 @@ const { lang = 'en' } = Astro.props as { lang?: Lang };
             <li>{t(lang, 'roadmap.docx.l4')}</li>
             <li>{t(lang, 'roadmap.docx.l5')}</li>
             <li>{t(lang, 'roadmap.docx.l6')}</li>
+            <li>{t(lang, 'roadmap.docx.l7')}</li>
           </ul>
           <div class="tl-records">
             <p class="tl-records-label">{t(lang, 'roadmap.records.doneLabel')}</p>
@@ -47,6 +48,7 @@ const { lang = 'en' } = Astro.props as { lang?: Lang };
               <li><a href="https://github.com/quire-office/quire/commit/162322f"><span class="tl-hash">162322f</span>{t(lang, 'roadmap.docx.r7')}</a></li>
               <li><a href="https://github.com/quire-office/quire/commit/7ab8604"><span class="tl-hash">7ab8604</span>{t(lang, 'roadmap.docx.r8')}</a></li>
               <li><a href="https://github.com/quire-office/quire/commit/8f4942c"><span class="tl-hash">8f4942c</span>{t(lang, 'roadmap.docx.r9')}</a></li>
+              <li><a href="https://github.com/quire-office/quire/releases/tag/v0.1.0-beta.12"><span class="tl-hash">beta.12</span>{t(lang, 'roadmap.docx.r10')}</a></li>
             </ul>
           </div>
         </article>
@@ -83,6 +85,7 @@ const { lang = 'en' } = Astro.props as { lang?: Lang };
             <li>{t(lang, 'roadmap.odf.l2')}</li>
             <li set:html={t(lang, 'roadmap.odf.l3')} />
             <li>{t(lang, 'roadmap.odf.l4')}</li>
+            <li set:html={t(lang, 'roadmap.odf.l5')} />
           </ul>
           <div class="tl-records">
             <p class="tl-records-label">{t(lang, 'roadmap.records.progressLabel')}</p>
@@ -90,6 +93,7 @@ const { lang = 'en' } = Astro.props as { lang?: Lang };
               <li><a href="https://github.com/quire-office/quire/commit/5b84323"><span class="tl-hash">5b84323</span>{t(lang, 'roadmap.odf.r1')}</a></li>
               <li><a href="https://github.com/quire-office/quire/commit/b0a41c0"><span class="tl-hash">b0a41c0</span>{t(lang, 'roadmap.odf.r2')}</a></li>
               <li><a href="https://github.com/quire-office/quire/commit/735fae5"><span class="tl-hash">735fae5</span>{t(lang, 'roadmap.odf.r3')}</a></li>
+              <li><a href="https://github.com/quire-office/quire/commit/e11ff88"><span class="tl-hash">e11ff88</span>{t(lang, 'roadmap.odf.r4')}</a></li>
             </ul>
           </div>
           <p class="tl-note">{t(lang, 'roadmap.odf.note')}</p>
