@@ -1,18 +1,18 @@
 {
   "$schema": "playground 頁面 WASM 引擎資產清單（進 git 的唯一信任來源）",
-  "version": "0.1.0-beta.11",
+  "version": "0.1.0-beta.12",
   "release_url_template": "https://github.com/quire-office/quire/releases/download/v{version}/{file}",
   "local_fallback_dir": "/home/jerry/projects/quire/shells/web/pkg/",
   "target_dir": "public/playground/",
   "assets": [
     {
       "file": "quire_web_bg.wasm",
-      "sha256": "387ea470ec7c550571a1910f97bcef549f1c9c23b4b16c20c9d20f63f81da453",
-      "note": "Rust 排版核心 + shells/web 介接層之 wasm-bindgen 產物（raw 1,924,804 bytes，經本站 gzip 傳輸量於發版驗證實測）。v0.1.0-beta.11：D9b 框內圖與滿版外框幾何資料化（去字面量，同源推導式）＋ODF E2b/E2c/E2d（隱藏 section、圖形替代文字、頁首尾投影）＋DOCX 排版收斂（G1 錨點圖、Trebuchet 垂直尺 1.1611、xml:space 節點級空白口徑、內嵌子集標點 advance）。"
+      "sha256": "db17bdb3b2b0896e4edf34d3a4649e0d7d36e08ed547db8d217d6fd8af08b1a7",
+      "note": "Rust 排版核心 + shells/web 介接層之 wasm-bindgen 產物（raw 2,436,168 bytes，經本站 gzip 傳輸量於發版驗證實測）。v0.1.0-beta.12：編輯 API 四片全落地（K29a 文字段落結構／K29b 字元格式與段落樣式／K29c 表格十六變體＋圖片媒體／K29d 節屬性、頁首頁尾、註腳尾註，共 30 個 Mutation 變體＋Undo/Redo）＋ODF 縮排消費與正文表格模型。"
     },
     {
       "file": "quire_web.js",
-      "sha256": "aadacfbbe9e2556642deaf428dc295aeb3217705b26e5226107255689047fd44",
+      "sha256": "f1be04c681a25ade5f1226bd22579406a95cbea87ab69d6df3da02a1bee29cfb",
       "note": "對應的 wasm-bindgen 膠水層（ESM）"
     }
   ]
